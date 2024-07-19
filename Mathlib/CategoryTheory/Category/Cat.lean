@@ -7,6 +7,7 @@ import Mathlib.CategoryTheory.ConcreteCategory.Bundled
 import Mathlib.CategoryTheory.DiscreteCategory
 import Mathlib.CategoryTheory.Types
 import Mathlib.CategoryTheory.Bicategory.Strict
+import Mathlib.CategoryTheory.Monoidal.Category
 
 #align_import category_theory.category.Cat from "leanprover-community/mathlib"@"e97cf15cd1aec9bd5c193b2ffac5a6dc9118912b"
 
@@ -24,7 +25,7 @@ its carrier type.
 -/
 
 
-universe v u
+universe v u v' u'
 
 namespace CategoryTheory
 
@@ -87,6 +88,53 @@ instance category : LargeCategory.{max v u} Cat.{v, u} :=
   StrictBicategory.category Cat.{v, u}
 set_option linter.uppercaseLean3 false in
 #align category_theory.Cat.category CategoryTheory.Cat.category
+
+def toto : Cat   := Cat.of (Discrete PUnit )
+
+
+def t := Bundled Category
+
+
+-- class CategoryStruct (obj : Type u) extends Quiver.{v + 1} obj : Type max u (v + 1) where
+--   id : ∀ X : obj, Hom X X
+--   comp : ∀ {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z)
+
+-- class Category (obj : Type u) extends CategoryStruct.{v} obj : Type max u (v + 1) where
+--   id_comp : ∀ {X Y : obj} (f : X ⟶ Y), 𝟙 X ≫ f = f := by aesop_cat
+--   comp_id : ∀ {X Y : obj} (f : X ⟶ Y), f ≫ 𝟙 Y = f := by aesop_cat
+--   assoc : ∀ {W X Y Z : obj} (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z), (f ≫ g) ≫ h = f ≫ g ≫ h := by  aesop_cat
+
+-- structure Bundled (c : Type u → Type v) : Type max (u + 1) v where
+--   α : Type u
+--   str : c α := by infer_instance
+
+
+instance productCategoryStruct {x y} [X : CategoryStruct x] [Y : CategoryStruct y] : CategoryStruct (x × y) where
+  Hom xy x'y' := (X.Hom xy.fst x'y'.fst)  × (Y.Hom xy.snd x'y'.snd)
+  id  := fun (x,y) ↦ (X.id x, Y.id y)
+  comp := fun (f,r) (g,s)  ↦ (X.comp f g, Y.comp r s)
+
+def productCat (X : Cat.{u,v}) (Y : Cat.{u',v'}) : Cat.{max u u', max v v'} := sorry
+
+-- instance types : LargeCategory (Type u) where
+--   Hom a b := a → b
+--   id a := id
+--   comp f g := g ∘ f
+
+-- HasFiniteProducts _
+
+
+instance monoidal :  MonoidalCategory (Cat.{u, u}) where
+  tensorUnit := Cat.of (Discrete PUnit)
+  tensorObj X Y := sorry
+  whiskerLeft X _ _ f := sorry
+  whiskerRight f X := sorry
+  tensorHom f g := sorry
+  leftUnitor X := sorry
+  rightUnitor X := sorry
+  associator X Y Z := sorry
+
+
 
 @[simp]
 theorem id_map {C : Cat} {X Y : C} (f : X ⟶ Y) : (𝟙 C : C ⥤ C).map f = f :=

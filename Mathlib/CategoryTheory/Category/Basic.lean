@@ -200,7 +200,7 @@ abbrev LargeCategory (C : Type (u + 1)) : Type (u + 1) := Category.{u} C
 
 /-- A `SmallCategory` has objects and morphisms in the same universe level.
 -/
-abbrev SmallCategory (C : Type u) : Type (u + 1) := Category.{u} C
+abbrev SmallCategory (C : Type u) : Type (u + 1) := Category.{u,u} C
 #align category_theory.small_category CategoryTheory.SmallCategory
 
 section

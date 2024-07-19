@@ -76,6 +76,9 @@ theorem empty_ext' (F G : Discrete.{w} PEmpty ⥤ C) : F = G :=
   Functor.ext (fun x => x.as.elim) fun x _ _ => x.as.elim
 #align category_theory.functor.empty_ext' CategoryTheory.Functor.empty_ext'
 
+
+
+
 end Functor
 
 end CategoryTheory
