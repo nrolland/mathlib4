@@ -11,76 +11,82 @@ namespace CategoryTheory
 
 open Limits
 
-noncomputable example : MonoidalCategory Cat := monoidalOfHasFiniteProducts _
+universe v v₁ v₂ v₃ u u₁ u₂ u₃
 
-universe v u
+variable (X : Type u) [Category.{v,u} X] (A : Type u₁)[Category.{v₁,u₁} A] (C : Type u₂) [Category.{v₂,u₂} C] (D : Type u₃)[Category.{v₃,u₃} D]
 
 /-- The chosen terminal object in `Cat`. -/
-abbrev chosenTerminalCategory : Cat.{u,u} := Cat.of (Discrete PUnit.{u+1})
-
-def bangFunctor  (C : Cat) : Functor C chosenTerminalCategory where
-  obj _ := ⟨PUnit.unit⟩
-  map _ := eqToHom rfl
-  map_id := by intro _
-               dsimp
-  map_comp := by intro _ _ _ _ _
-                 dsimp
-                 rw [Category.comp_id]
+abbrev One : Cat.{u,u} := Cat.of (Discrete PUnit.{u+1})
 
 /-- The chosen terminal object in `Cat` is terminal. -/
-def chosenTerminalCategoryIsTerminal : IsTerminal (chosenTerminalCategory) := {
-   lift := fun s ↦ bangFunctor s.pt
-   fac := fun s (j : Discrete PEmpty.{1}) ↦ by dsimp -- j can not exist
-                                               exact PEmpty.elim j.as
-   uniq := sorry
-  }
+def OneIsTerminal : IsTerminal One where
+  lift s := Functor.star s.pt
+  fac s (j : Discrete PEmpty.{1}) := by dsimp; exact PEmpty.elim j.as
+  uniq s m _ :=  Functor.punit_ext' m (Functor.star s.pt)
 
 
-instance productCategory C D [Category C] [Category D] : Category (C × D) where
-    Hom := fun ⟨c,d⟩ ⟨c',d'⟩ ↦  (Category.toCategoryStruct.toQuiver.Hom c c') × ( Category.toCategoryStruct.toQuiver.Hom d d')
-    id  :=  fun ⟨c,d⟩   ↦  ⟨Category.toCategoryStruct.id c,Category.toCategoryStruct.id d⟩
-    comp := fun f g ↦ ⟨Category.toCategoryStruct.comp f.1 g.1,Category.toCategoryStruct.comp f.2 g.2⟩
-    id_comp := by intro _ _ ⟨_,_⟩
-                  dsimp
-                  rw [Category.id_comp, Category.id_comp]
-    comp_id := by intro _ _ ⟨_,_⟩
-                  dsimp
-                  rw [Category.comp_id, Category.comp_id]
-    assoc := by intros _ _ _ _ _ _ _
-                dsimp
-                rw [Category.assoc, Category.assoc]
+def productCone (C D : Cat.{u}) : BinaryFan C D :=
+  .mk (P := .of (C × D)) (Prod.fst _ _) (Prod.snd _ _)
 
-def product (C : Cat) (D : Cat) : Cat := Cat.of (C × D)
-def pi_1 {C : Cat} {D : Cat} : product C D ⥤ C    where
-  obj  := fun x ↦ x.1
-  map  := fun f ↦ f.1
-  map_id := fun (⟨a,_⟩ )  ↦ by dsimp
-                               aesop_cat
-  map_comp := by aesop_cat
 
-def pi_2 {C : Cat} {D : Cat} : product C D ⥤ D    where
-  obj  := fun x ↦ x.2
-  map  := fun f ↦ f.2
-  map_id := by aesop_cat
-  map_comp := by aesop_cat
+def t (X Y : Cat) : (productCone X Y).fst = Prod.fst X Y := rfl
 
-def productCone (C : Cat.{u}) (D : Cat) : BinaryFan C  D := BinaryFan.mk pi_1 pi_2
 
-def isLimit (X Y : Cat) : IsLimit (productCone X Y) := sorry
+/-- The equality between `(X.1, X.2)` and `X`. -/
+def prodObjEq (x : C) (x' : C) (y: D)(y': D)  (h : x = x') (g : y = y'): (x, y) = (x',y') := by aesop
+def prodObjEqCp1 (x : C) (x' : C) (y: D) (y': D) (h : (x, y) = (x',y')) : x = x' := by aesop
+def prodObjEqCp2 (x : C) (x' : C) (y: D) (y': D) (h : (x, y) = (x',y')) : y = y' := by aesop
+def prodMorEq (x x': C) (y y': D)  (f : x ⟶ x') (f' : x ⟶ x') (g : y ⟶ y') (g' : y ⟶ y')  (h : f = f') ( hd: g = g'): (f, g) = (f',g') := by aesop
 
 
 
--- /-- The category of small categories has all small limits. -/
--- instance : HasLimits Cat.{v, v} where
---   has_limits_of_shape _ :=
---     { has_limit := fun F => ⟨⟨⟨HasLimits.limitCone F, HasLimits.limitConeIsLimit F⟩⟩⟩ }
+def isLimit (X Y : Cat) : IsLimit (productCone X Y) where
+   lift s : s.pt ⥤ Cat.of (X × Y) := Functor.prod' (s.π.app ⟨WalkingPair.left⟩) (s.π.app ⟨WalkingPair.right⟩)
+   fac s
+    | ⟨WalkingPair.left⟩ =>  rfl
+    | ⟨WalkingPair.right⟩ => rfl
+
+   --- PB
+   uniq s m h := by
+      dsimp
+      -- ⊢ m = Functor.prod' (BinaryFan.fst s) (BinaryFan.snd s)
+      have h2 : m = Functor.prod' (s.π.app ⟨WalkingPair.left⟩) (s.π.app ⟨WalkingPair.right⟩) := by
+        exact Functor.ext
+                  ( --- h_obj : ∀ X, F.obj X = G.obj X  --
+                    fun _ => by
+                                apply prodObjEq
+                                . have h3 := h ⟨WalkingPair.left⟩;
+                                  rw [<- h ⟨WalkingPair.left⟩]; rfl
+                                . rw [<- h ⟨WalkingPair.right⟩];rfl)
+                  ( --- h_map : ∀ X Y f, F.map f = eqToHom (h_obj X) ≫ G.map f ≫ eqToHom (h_obj Y).symm
+                    fun x y f => by
+                  -- En theorie, on veut montrer que m f = (s.fst f, s.snd f)
+                  -- c'est equivalent a (m >> fst) f = s.fst f et (m >> snd) f = s.snd f
+                  -- or c'est ce que l'on a avec h
+                  -- En pratique, ca ne type-check pas..
+                  -- l'interface nous demande de montrer m f = mx -> (s.fst x, s.snd x) ---(s.fst f, s.snd f)-> (s.fst y, s.snd y) --> my
+                    have mxToProd : m.obj x = ((BinaryFan.fst s).obj x, (BinaryFan.snd s).obj x)  := sorry
+                    have myToProd : m.obj y = ((BinaryFan.fst s).obj y, (BinaryFan.snd s).obj y)  := sorry
+                    have h3 := h ⟨WalkingPair.left⟩;
+                    --rw [<- h ⟨WalkingPair.left⟩] -- ne marche pas ?? (tactic 'rewrite' failed, motive is not type correct)
+
+                    -- il faudrait enlever les morphismes avant et appres pour la meme strategie que h_obj pour les objets
+                    apply prodMorEq
+                    . have mxToProd1 : (m.obj x).1 = (BinaryFan.fst s).obj x :=  prodObjEqCp1 (h := mxToProd)
+                      have myToProd1 : (m.obj y).1 = (BinaryFan.fst s).obj y :=  prodObjEqCp1 (h := myToProd)
+                      sorry
+                    . sorry)
+      exact h2
+
+--CategoryTheory.Functor.ext.{v₁, v₂, u₁, u₂} {C : Type u₁} [Category.{v₁, u₁} C] {D : Type u₂} [Category.{v₂, u₂} D]
+-- ext {F G : C ⥤ D}
+--  (h_obj : ∀ X, F.obj X = G.obj X)
+--  (h_map : ∀ X Y f, F.map f = eqToHom (h_obj X) ≫ G.map f ≫ eqToHom (h_obj Y).symm  ) :
+
+
 instance : ChosenFiniteProducts Cat where
-  product (X Y : Cat) :  LimitCone (pair X Y) := {cone :=(productCone X Y  : Cone (pair X Y)), isLimit := sorry}
-  terminal : LimitCone (Functor.empty Cat) := {cone := asEmptyCone chosenTerminalCategory, isLimit := chosenTerminalCategoryIsTerminal}
+  product (X Y : Cat) :  LimitCone (pair X Y) := {cone := (productCone X Y  : Cone (pair X Y)), isLimit := isLimit X Y}
+  terminal : LimitCone (Functor.empty Cat) := {cone := asEmptyCone One, isLimit := OneIsTerminal}
 
---noncomputable
---example : MonoidalCategory Cat := monoidalOfChosenFiniteProducts _
 
---example : HasTerminal Cat
-
-def one := 1
+end CategoryTheory
