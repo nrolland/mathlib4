@@ -46,7 +46,14 @@ def isLimit (X Y : Cat) : IsLimit (productCone X Y) where
     | ⟨WalkingPair.left⟩ =>  rfl
     | ⟨WalkingPair.right⟩ => rfl
 
-   --- PB
+   -- on se donne deux foncteurs, one : s.pt -> X et two : s.pt -> Y
+   -- on se donne un morphisme, m : s.pt -> X × Y qui verifie
+   -- m ≫ fst = one  et  m ≫ snd = two
+   -- on veut que m = prod' one two
+
+   -- s : Cone (pair X Y)  -- moralement  one : s.pt -> X et two : s.pt -> Y
+   -- m : s.pt ⟶ (productCone X Y).pt  -- moralement m : s.pt -> X × Y
+   -- h : ∀ (j : Discrete WalkingPair), m ≫ (productCone X Y).π.app j = s.π.app j  -- moralement m ≫ fst = one  et  m ≫ snd = two
    uniq s m h := by
       dsimp
       -- ⊢ m = Functor.prod' (BinaryFan.fst s) (BinaryFan.snd s)
@@ -55,8 +62,7 @@ def isLimit (X Y : Cat) : IsLimit (productCone X Y) where
                   ( --- h_obj : ∀ X, F.obj X = G.obj X  --
                     fun _ => by
                                 apply prodObjEq
-                                . have h3 := h ⟨WalkingPair.left⟩;
-                                  rw [<- h ⟨WalkingPair.left⟩]; rfl
+                                . rw [<- h ⟨WalkingPair.left⟩]; rfl
                                 . rw [<- h ⟨WalkingPair.right⟩];rfl)
                   ( --- h_map : ∀ X Y f, F.map f = eqToHom (h_obj X) ≫ G.map f ≫ eqToHom (h_obj Y).symm
                     fun x y f => by
@@ -82,6 +88,8 @@ def isLimit (X Y : Cat) : IsLimit (productCone X Y) where
 -- ext {F G : C ⥤ D}
 --  (h_obj : ∀ X, F.obj X = G.obj X)
 --  (h_map : ∀ X Y f, F.map f = eqToHom (h_obj X) ≫ G.map f ≫ eqToHom (h_obj Y).symm  ) :
+
+-- => peut etre faut il passer par une prop de prod' plutot que par une extensionalité
 
 
 instance : ChosenFiniteProducts Cat where
