@@ -83,4 +83,66 @@ def adjTypeToCatCatobjects : typeToCat ⊣ Cat.objects where
 end AdjDiscObj
 
 
+section AdjCC
+
+variable (X : Type u)
+variable {C D : Cat}
+variable {α : Type u}
+variable {a b : C}
+
+def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
+def refl_trans_symm_closure (r : α → α → Prop) a b := Quot.mk r a = Quot.mk r  b
+
+def isConnectedByZigZag  : C → C → Prop   := refl_trans_symm_closure isConnected
+
+def catisSetoid : Setoid C where
+  r := isConnectedByZigZag
+  iseqv := { refl  := fun _ => rfl, symm  := Eq.symm , trans := Eq.trans }
+
+def toCC x := Quotient.mk (@catisSetoid C) x
+def cc (C : Cat) := { toCC x | x : C }
+
+
+lemma functoriality (h : isConnected a b ) (F : C ⥤ D) : isConnected (F.obj a) (F.obj b) := sorry
+
+
+
+def asas := (· + 1)
+
+def amap  (F : C ⥤ D)  : C → cc D := fun x => ⟨toCC (F.obj x), by use (F.obj x)⟩
+
+def amap'  (F : C ⥤ D) := Quotient.lift (s:= @catisSetoid C) (amap F)
+
+def p (F : ↑C ⥤ ↑D) : (∀ (a b : ↑C), isConnectedByZigZag a b → amap F a = amap F b) := fun a b h ↦
+    have : Quot.mk isConnected a = Quot.mk isConnected  b := h
+    by
+        have : True := sorry
+        sorry
+
+#check amap'
+
+-- CategoryTheory.amap'.{u_1, u_2, u_3, u_4} {C : Cat} {D : Cat} (F : ↑C ⥤ ↑D) :
+--   (∀ (a b : ↑C), a ≈ b → amap F a = amap F b) → Quotient catisSetoid → ↑(cc D)
+
+def connectedComponents : Cat.{v, u} ⥤ Type u where
+  obj C := cc C -- maps a category to its set of CC
+  map {X Y} F := fun ⟨x,_⟩ ↦  sorry
+
+---/lift {α : Sort u} {β : Sort v} {s : Setoid α} (f : α → β) : ((a b : α) → a ≈ b → f a = f b) → Quotient s → β
+
+
+
+def lxyToxry' : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := sorry
+def xryTolxy' :  (C ⟶ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := sorry
+
+
+def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
+  homEquiv  := sorry
+  unit  := sorry
+  counit := sorry
+
+
+end AdjCC
+
+
 end CategoryTheory
