@@ -91,9 +91,10 @@ variable {α : Type u}
 variable {a b : C}
 
 def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
-def refl_trans_symm_closure (r : α → α → Prop) a b := Quot.mk r a = Quot.mk r  b
-
 def isConnectedByZigZag  : C → C → Prop   := EqvGen isConnected
+
+-- def quot_closure{α : Type u} (r : α → α → Prop) a b := Quot.mk r a = Quot.mk r  b
+-- def isQuotClosed  : C → C → Prop   := quot_closure isConnected
 
 def catisSetoid : Setoid C where
   r := isConnectedByZigZag
@@ -103,32 +104,47 @@ def toCC x := Quotient.mk (@catisSetoid C) x
 def cc (C : Cat) := { toCC x | x : C }
 
 
-lemma functoriality (h : isConnected a b ) (F : C ⥤ D) : isConnected (F.obj a) (F.obj b) := sorry
+lemma functoriality (F : C ⥤ D)
+        (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj a) (F.obj b) := by
+  induction h
+  case rel _ _ h => obtain ⟨f,_⟩ := h
+                    exact (EqvGen.rel _ _ ⟨F.map f, trivial⟩)
+  case refl x => exact EqvGen.refl (F.obj x)
+  case symm _ _ w => exact EqvGen.symm _ _ w
+  case trans _  _ _ f g => exact EqvGen.trans _ _ _ f g
 
 
 
-def asas := (· + 1)
+lemma functoriality2 (F : C ⥤ D) (a b : C) : isQuotClosed a b → isQuotClosed (F.obj a) (F.obj b) :=
+   Quot.EqvGen_sound ∘ functoriality F ∘ Quot.exact isConnected
 
 def amap  (F : C ⥤ D)  : C → cc D := fun x => ⟨toCC (F.obj x), by use (F.obj x)⟩
 
-def amap'  (F : C ⥤ D) := Quotient.lift (s:= @catisSetoid C) (amap F)
+lemma functoriality3 (F : C ⥤ D) (a b : C) (h: isConnectedByZigZag a b) : amap F a = amap F b := by
+  -- egalite sur existentiel... TBD
+  induction h
+  sorry
+  sorry
+  sorry
+  sorry
 
-def p (F : ↑C ⥤ ↑D) : (∀ (a b : ↑C), isConnectedByZigZag a b → amap F a = amap F b) := fun a b h ↦
-    have : Quot.mk isConnected a = Quot.mk isConnected  b := h
-    by
-        have : True := sorry
-        sorry
+
+def amap'  (F : C ⥤ D) :  Quotient (@catisSetoid C) → (cc D) :=
+    Quotient.lift (s:= @catisSetoid C)
+                  (amap F : C → cc D)
+                  (sorry :  ∀ (a b : C), isConnectedByZigZag a b → amap F a = amap F b /- egalite sur existentiel -/)
+
+def fmap {X Y : Cat} (F : X ⟶ Y) : (cc X) → (cc Y) := fun ⟨x,_⟩ ↦ amap' F x
 
 #check amap'
-
 -- CategoryTheory.amap'.{u_1, u_2, u_3, u_4} {C : Cat} {D : Cat} (F : ↑C ⥤ ↑D) :
 --   (∀ (a b : ↑C), a ≈ b → amap F a = amap F b) → Quotient catisSetoid → ↑(cc D)
 
 def connectedComponents : Cat.{v, u} ⥤ Type u where
   obj C := cc C -- maps a category to its set of CC
-  map {X Y} F := fun ⟨x,_⟩ ↦  sorry
-
----/lift {α : Sort u} {β : Sort v} {s : Setoid α} (f : α → β) : ((a b : α) → a ≈ b → f a = f b) → Quotient s → β
+  map {X Y} F := fun ⟨x,_⟩ ↦   amap' F x
+  map_id := sorry
+  map_comp := sorry
 
 
 
