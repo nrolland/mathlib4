@@ -93,11 +93,11 @@ variable {a b : C}
 def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
 def refl_trans_symm_closure (r : α → α → Prop) a b := Quot.mk r a = Quot.mk r  b
 
-def isConnectedByZigZag  : C → C → Prop   := refl_trans_symm_closure isConnected
+def isConnectedByZigZag  : C → C → Prop   := EqvGen isConnected
 
 def catisSetoid : Setoid C where
   r := isConnectedByZigZag
-  iseqv := { refl  := fun _ => rfl, symm  := Eq.symm , trans := Eq.trans }
+  iseqv := EqvGen.is_equivalence isConnected
 
 def toCC x := Quotient.mk (@catisSetoid C) x
 def cc (C : Cat) := { toCC x | x : C }
