@@ -1846,6 +1846,7 @@ import Mathlib.CategoryTheory.Types
 import Mathlib.CategoryTheory.TypesToCat
 import Mathlib.CategoryTheory.UnivLE
 import Mathlib.CategoryTheory.Whiskering
+import Mathlib.CategoryTheory.Widesubcategory
 import Mathlib.CategoryTheory.WithTerminal
 import Mathlib.CategoryTheory.Yoneda
 import Mathlib.Combinatorics.Additive.AP.Three.Behrend
