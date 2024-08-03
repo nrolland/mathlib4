@@ -91,26 +91,17 @@ variable {α : Type u}
 variable {a b : C}
 variable (F : C ⥤ D)
 
+
+-- relation
 def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
-def isConnectedByZigZag  : C → C → Prop   := EqvGen isConnected
 
 lemma transport (h : isConnected a b) : isConnected (F.obj a) (F.obj b) := by
    obtain ⟨f,_⟩ := h
    exact ⟨F.map f, trivial⟩
 
-def catisSetoid : Setoid C where
-  r := isConnectedByZigZag
-  iseqv := EqvGen.is_equivalence isConnected
 
--- Transport d'un x vers sa composante
-def toCC (x : C) : Quotient (@catisSetoid C) := Quotient.mk (@catisSetoid C) x
-
--- ensemble des composantes d'une categorie
--- def ccSet (C : Cat) := { toCC x | x : C }
-
-abbrev ccSet  (C : Cat) := Quotient (@catisSetoid C)
--- def toCC2 (x: C) : ccSet C := ⟨toCC x, by use x⟩
-
+-- equivalence closure
+abbrev isConnectedByZigZag  : C → C → Prop   := EqvGen isConnected
 
 lemma transportExt  (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj a) (F.obj b) := by
   induction h
@@ -120,36 +111,39 @@ lemma transportExt  (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj 
   case trans f g => exact EqvGen.trans _ _ _ f g
 
 
-def quot_closure{α : Type u} (r : α → α → Prop) a b := Quot.mk r a = Quot.mk r  b
-def isQuotClosed  : C → C → Prop   := quot_closure isConnected
-lemma functorialityQuotClosed (a b : C) : isQuotClosed a b → isQuotClosed (F.obj a) (F.obj b) :=
-   Quot.EqvGen_sound ∘ transportExt F ∘ Quot.exact isConnected
+-- Other formulation
+-- def isConnectedByQuotEq (a b : C) := Quot.mk isConnected a = Quot.mk isConnected  b
+-- lemma functorialityQuotClosed : isConnectedByQuotEq a b → isConnectedByQuotEq (F.obj a) (F.obj b) :=
+--    Quot.EqvGen_sound ∘ transportExt F ∘ Quot.exact isConnected
+
+
+--- Quotient based computation
+def catisSetoid : Setoid C where
+  r := isConnectedByZigZag
+  iseqv := EqvGen.is_equivalence isConnected
+
+-- Transport d'un x vers sa composante
+def toCC (x : C) : Quotient (@catisSetoid C) := Quotient.mk (@catisSetoid C) x
+
+-- Ensemble des composantes d'une categorie
+abbrev ccSet  (C : Cat) := Quotient (@catisSetoid C)
 
 
 lemma transportExtQuot (a b : C) : isConnectedByZigZag a b → toCC (F.obj a) = toCC (F.obj b) :=
     Quot.sound ∘ transportExt F
 
--- -- induction is not case analysis
--- lemma functoriality3 (F : C ⥤ D) (a b : C) (h: isConnectedByZigZag a b) : toCC (F.obj a) = toCC (F.obj b) := by
---   induction h
---   case rel a b h => exact (transport F h) |> EqvGen.rel _ _ |> Quot.sound
---   case refl x => exact EqvGen.refl _  |> Quot.sound
---   case symm w  => exact Quotient.exact w /- not case -/|> EqvGen.symm _ _ |> Quot.sound
---   case trans _  _ _ f g => sorry
 
-
-def fmap {X Y : Cat} (F : X ⟶ Y) : (ccSet X) → (ccSet Y) := fun x ↦
+private def fmap {X Y : Cat} (F : X ⟶ Y) : (ccSet X) → (ccSet Y) :=
     Quotient.lift (s:= @catisSetoid X)
                   (toCC ∘ F.obj  : X → ccSet Y)
                   (fun _ _ => Quot.sound ∘ transportExt F )
-                  x
 
+/- The functor for connected components -/
 def connectedComponents : Cat.{v, u} ⥤ Type u where
   obj C := ccSet C -- maps a category to its set of CC
-  map {X Y} F := fmap F
-  map_id := sorry
+  map F := fmap F
+  map_id := by simp; sorry
   map_comp := sorry
-
 
 
 def lxyToxry' : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := sorry
