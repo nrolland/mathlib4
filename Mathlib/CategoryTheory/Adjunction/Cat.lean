@@ -91,7 +91,6 @@ variable {α : Type u}
 variable {a b : C}
 variable (F : C ⥤ D)
 
-set_option linter.longLine false
 -- relation
 def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
 
@@ -113,9 +112,9 @@ lemma transportExt  (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj 
 
 -- Other formulation
 -- def isConnectedByQuotEq (a b : C) := Quot.mk isConnected a = Quot.mk isConnected  b
--- lemma functorialityQuotClosed : isConnectedByQuotEq a b → isConnectedByQuotEq (F.obj a) (F.obj b) :=
+-- lemma functorialityQuotClosed : isConnectedByQuotEq a b →
+--                                 isConnectedByQuotEq (F.obj a) (F.obj b) :=
 --    Quot.EqvGen_sound ∘ transportExt F ∘ Quot.exact isConnected
-
 
 --- Quotient based computation
 def catisSetoid : Setoid C where
@@ -136,16 +135,9 @@ private def fmap {X Y : Cat} (F : X ⟶ Y) : (ccSet X) → (ccSet Y) :=
                   (toCC ∘ F.obj  : X → ccSet Y)
                   (fun _ _ => Quot.sound ∘ transportExt F )
 
+private abbrev liftedMk (s : Setoid α)  := Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
 
-abbrev liftedMk (s : Setoid α)  := Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
-
-def quotDecomp {s : Setoid α}  : ∀ xt : Quotient s, (∃ x, ⟦x⟧ = xt) := Quotient.ind (motive:= (∃ x, Quotient.mk s x = ·)) (by simp; exact ⟨·, s.refl _⟩) xt
-
-lemma mylemma4 {s : Setoid α} : liftedMk s = fun x => x := by
-  funext xt
-  obtain ⟨x,h⟩ := quotDecomp xt
-  rw [h.symm]
-  rfl
+private def quotDecomp {s : Setoid α}  : ∀ xt : Quotient s, (∃ x, ⟦x⟧ = xt) := Quotient.ind (motive:= (∃ x, Quotient.mk s x = ·)) (by simp; exact ⟨·, s.refl _⟩) xt
 
 /- The functor for connected components -/
 def connectedComponents : Cat.{v, u} ⥤ Type u where
@@ -153,9 +145,14 @@ def connectedComponents : Cat.{v, u} ⥤ Type u where
   map F := fmap F  -- transport a functor to a function beetwen CC
   map_id X := by calc
       CategoryTheory.fmap (𝟙 X) =  liftedMk (@catisSetoid X) := by exact (rfl : fmap (𝟙 X) = liftedMk (@catisSetoid X))
-        _                       = fun x => x := mylemma4
-        _                       = 𝟙 (ccSet X) := by rfl
-  map_comp := sorry
+        _                       = fun x => x          := by funext xt; obtain ⟨x,h⟩ := quotDecomp xt
+                                                            simp [h.symm]
+        _                       = 𝟙 (ccSet X)         := by rfl
+  map_comp f g := by simp; funext xt; obtain ⟨x,h⟩ := quotDecomp xt;
+                     simp [h.symm]
+                     calc
+                      fmap (f ≫ g) ⟦x⟧ = ⟦(f ≫ g).obj x⟧ := by rfl
+                      _               = fmap g (fmap f ⟦x⟧) := by rfl
 
 def lxyToxry' : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := sorry
 def xryTolxy' :  (C ⟶ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := sorry
