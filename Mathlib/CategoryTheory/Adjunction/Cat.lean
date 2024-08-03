@@ -89,60 +89,64 @@ variable (X : Type u)
 variable {C D : Cat}
 variable {α : Type u}
 variable {a b : C}
+variable (F : C ⥤ D)
 
 def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
 def isConnectedByZigZag  : C → C → Prop   := EqvGen isConnected
 
--- def quot_closure{α : Type u} (r : α → α → Prop) a b := Quot.mk r a = Quot.mk r  b
--- def isQuotClosed  : C → C → Prop   := quot_closure isConnected
+lemma transport (h : isConnected a b) : isConnected (F.obj a) (F.obj b) := by
+   obtain ⟨f,_⟩ := h
+   exact ⟨F.map f, trivial⟩
 
 def catisSetoid : Setoid C where
   r := isConnectedByZigZag
   iseqv := EqvGen.is_equivalence isConnected
 
-def toCC x := Quotient.mk (@catisSetoid C) x
-def cc (C : Cat) := { toCC x | x : C }
+-- Transport d'un x vers sa composante
+def toCC (x : C) : Quotient (@catisSetoid C) := Quotient.mk (@catisSetoid C) x
+
+-- ensemble des composantes d'une categorie
+-- def ccSet (C : Cat) := { toCC x | x : C }
+
+abbrev ccSet  (C : Cat) := Quotient (@catisSetoid C)
+-- def toCC2 (x: C) : ccSet C := ⟨toCC x, by use x⟩
 
 
-lemma functoriality (F : C ⥤ D)
-        (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj a) (F.obj b) := by
+lemma transportExt  (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj a) (F.obj b) := by
   induction h
-  case rel _ _ h => obtain ⟨f,_⟩ := h
-                    exact (EqvGen.rel _ _ ⟨F.map f, trivial⟩)
-  case refl x => exact EqvGen.refl (F.obj x)
-  case symm _ _ w => exact EqvGen.symm _ _ w
-  case trans _  _ _ f g => exact EqvGen.trans _ _ _ f g
+  case rel h => exact (EqvGen.rel _ _ (transport F h))
+  case refl => exact EqvGen.refl _
+  case symm w => exact EqvGen.symm _ _ w
+  case trans f g => exact EqvGen.trans _ _ _ f g
 
 
-
-lemma functoriality2 (F : C ⥤ D) (a b : C) : isQuotClosed a b → isQuotClosed (F.obj a) (F.obj b) :=
-   Quot.EqvGen_sound ∘ functoriality F ∘ Quot.exact isConnected
-
-def amap  (F : C ⥤ D)  : C → cc D := fun x => ⟨toCC (F.obj x), by use (F.obj x)⟩
-
-lemma functoriality3 (F : C ⥤ D) (a b : C) (h: isConnectedByZigZag a b) : amap F a = amap F b := by
-  -- egalite sur existentiel... TBD
-  induction h
-  sorry
-  sorry
-  sorry
-  sorry
+def quot_closure{α : Type u} (r : α → α → Prop) a b := Quot.mk r a = Quot.mk r  b
+def isQuotClosed  : C → C → Prop   := quot_closure isConnected
+lemma functorialityQuotClosed (a b : C) : isQuotClosed a b → isQuotClosed (F.obj a) (F.obj b) :=
+   Quot.EqvGen_sound ∘ transportExt F ∘ Quot.exact isConnected
 
 
-def amap'  (F : C ⥤ D) :  Quotient (@catisSetoid C) → (cc D) :=
-    Quotient.lift (s:= @catisSetoid C)
-                  (amap F : C → cc D)
-                  (sorry :  ∀ (a b : C), isConnectedByZigZag a b → amap F a = amap F b /- egalite sur existentiel -/)
+lemma transportExtQuot (a b : C) : isConnectedByZigZag a b → toCC (F.obj a) = toCC (F.obj b) :=
+    Quot.sound ∘ transportExt F
 
-def fmap {X Y : Cat} (F : X ⟶ Y) : (cc X) → (cc Y) := fun ⟨x,_⟩ ↦ amap' F x
+-- -- induction is not case analysis
+-- lemma functoriality3 (F : C ⥤ D) (a b : C) (h: isConnectedByZigZag a b) : toCC (F.obj a) = toCC (F.obj b) := by
+--   induction h
+--   case rel a b h => exact (transport F h) |> EqvGen.rel _ _ |> Quot.sound
+--   case refl x => exact EqvGen.refl _  |> Quot.sound
+--   case symm w  => exact Quotient.exact w /- not case -/|> EqvGen.symm _ _ |> Quot.sound
+--   case trans _  _ _ f g => sorry
 
-#check amap'
--- CategoryTheory.amap'.{u_1, u_2, u_3, u_4} {C : Cat} {D : Cat} (F : ↑C ⥤ ↑D) :
---   (∀ (a b : ↑C), a ≈ b → amap F a = amap F b) → Quotient catisSetoid → ↑(cc D)
+
+def fmap {X Y : Cat} (F : X ⟶ Y) : (ccSet X) → (ccSet Y) := fun x ↦
+    Quotient.lift (s:= @catisSetoid X)
+                  (toCC ∘ F.obj  : X → ccSet Y)
+                  (fun _ _ => Quot.sound ∘ transportExt F )
+                  x
 
 def connectedComponents : Cat.{v, u} ⥤ Type u where
-  obj C := cc C -- maps a category to its set of CC
-  map {X Y} F := fun ⟨x,_⟩ ↦   amap' F x
+  obj C := ccSet C -- maps a category to its set of CC
+  map {X Y} F := fmap F
   map_id := sorry
   map_comp := sorry
 
