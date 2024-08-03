@@ -2,13 +2,16 @@ import Mathlib.CategoryTheory.Category.Cat
 
 universe u
 
+
+lemma mylemma {α : Sort u} {s : Setoid α} : (Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)) = fun x => x := sorry
+
+
 namespace CategoryTheory
 
 
 variable {C D : Cat}
 variable {a b : C}
 variable (F : C ⥤ D)
-
 
 -- relation
 def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
@@ -42,6 +45,11 @@ lemma transportExtQuot' (h: isConnectedByZigZag a b) : toCC (F.obj a) = toCC (F.
   case refl x => exact EqvGen.refl _  |> Quot.sound
   case symm w /- different type -/ => exact Quotient.exact w /- not case -/|> EqvGen.symm _ _ |> Quot.sound
   case trans _  _ _ f g => sorry
+
+abbrev liftedMk  {α : Sort u} (s : Setoid α)  := Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
+
+lemma complex {α : Sort u} {s : Setoid α} : liftedMk s ∘ Quotient.mk s = Quotient.mk s := by funext x; exact Quot.liftBeta  (Quotient.mk s) (fun _ _ => Quotient.sound) x
+lemma simple  {α : Sort u} {s : Setoid α} : liftedMk s ∘ Quotient.mk s = Quotient.mk s := rfl
 
 
 end CategoryTheory
