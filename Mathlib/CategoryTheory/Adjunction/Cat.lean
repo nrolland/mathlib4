@@ -144,15 +144,12 @@ def connectedComponents : Cat.{v, u} ⥤ Type u where
   obj C := ccSet C -- maps a category to its set of CC
   map F := fmap F  -- transport a functor to a function beetwen CC
   map_id X := by calc
-      CategoryTheory.fmap (𝟙 X) =  liftedMk (@catisSetoid X) := by exact (rfl : fmap (𝟙 X) = liftedMk (@catisSetoid X))
-        _                       = fun x => x          := by funext xt; obtain ⟨x,h⟩ := quotDecomp xt
-                                                            simp [h.symm]
-        _                       = 𝟙 (ccSet X)         := by rfl
-  map_comp f g := by simp; funext xt; obtain ⟨x,h⟩ := quotDecomp xt;
-                     simp [h.symm]
-                     calc
-                      fmap (f ≫ g) ⟦x⟧ = ⟦(f ≫ g).obj x⟧ := by rfl
-                      _               = fmap g (fmap f ⟦x⟧) := by rfl
+      fmap (𝟙 X) =  liftedMk (@catisSetoid X) := (rfl : fmap (𝟙 X) = liftedMk (@catisSetoid X))
+      _                       = fun x => x    := by funext xt; obtain ⟨x,h⟩ := quotDecomp xt
+                                                    simp [h.symm]
+      _                       = 𝟙 (ccSet X)   := by rfl
+  map_comp f g := by simp; funext xt; obtain ⟨_,h⟩ := quotDecomp xt;
+                     simp [h.symm];rfl
 
 def lxyToxry' : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := sorry
 def xryTolxy' :  (C ⟶ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := sorry
