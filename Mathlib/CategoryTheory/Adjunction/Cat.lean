@@ -91,7 +91,7 @@ variable {α : Type u}
 variable {a b : C}
 variable (F : C ⥤ D)
 
-
+set_option linter.longLine false
 -- relation
 def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
 
@@ -128,23 +128,34 @@ def toCC (x : C) : Quotient (@catisSetoid C) := Quotient.mk (@catisSetoid C) x
 -- Ensemble des composantes d'une categorie
 abbrev ccSet  (C : Cat) := Quotient (@catisSetoid C)
 
-
 lemma transportExtQuot (a b : C) : isConnectedByZigZag a b → toCC (F.obj a) = toCC (F.obj b) :=
     Quot.sound ∘ transportExt F
-
 
 private def fmap {X Y : Cat} (F : X ⟶ Y) : (ccSet X) → (ccSet Y) :=
     Quotient.lift (s:= @catisSetoid X)
                   (toCC ∘ F.obj  : X → ccSet Y)
                   (fun _ _ => Quot.sound ∘ transportExt F )
 
+
+abbrev liftedMk (s : Setoid α)  := Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
+
+def quotDecomp {s : Setoid α}  : ∀ xt : Quotient s, (∃ x, ⟦x⟧ = xt) := Quotient.ind (motive:= (∃ x, Quotient.mk s x = ·)) (by simp; exact ⟨·, s.refl _⟩) xt
+
+lemma mylemma4 {s : Setoid α} : liftedMk s = fun x => x := by
+  funext xt
+  obtain ⟨x,h⟩ := quotDecomp xt
+  rw [h.symm]
+  rfl
+
 /- The functor for connected components -/
 def connectedComponents : Cat.{v, u} ⥤ Type u where
   obj C := ccSet C -- maps a category to its set of CC
-  map F := fmap F
-  map_id := by simp; sorry
+  map F := fmap F  -- transport a functor to a function beetwen CC
+  map_id X := by calc
+      CategoryTheory.fmap (𝟙 X) =  liftedMk (@catisSetoid X) := by exact (rfl : fmap (𝟙 X) = liftedMk (@catisSetoid X))
+        _                       = fun x => x := mylemma4
+        _                       = 𝟙 (ccSet X) := by rfl
   map_comp := sorry
-
 
 def lxyToxry' : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := sorry
 def xryTolxy' :  (C ⟶ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := sorry
