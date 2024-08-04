@@ -152,8 +152,16 @@ def connectedComponents : Cat.{v, u} ⥤ Type u where
   map_comp f g := by simp; funext xt; obtain ⟨_,h⟩ := quotDecomp xt;
                      simp [h.symm];rfl
 
-def lxyToxry' : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := sorry
-def xryTolxy' :  (C ⟶ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := sorry
+def laxToarx : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := fun f =>
+  { obj := fun x => x |> Quotient.mk (@catisSetoid C) |> f |> Discrete.mk
+    map := sorry
+    map_id := sorry
+    map_comp := sorry
+  }
+
+#check Discrete.mk
+
+def arxTolax :  (C ⟶ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := sorry
 
 
 def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where

@@ -52,4 +52,14 @@ lemma complex {α : Sort u} {s : Setoid α} : liftedMk s ∘ Quotient.mk s = Quo
 lemma simple  {α : Sort u} {s : Setoid α} : liftedMk s ∘ Quotient.mk s = Quotient.mk s := rfl
 
 
+
+structure Adjunction2 (F : C ⥤ D) (G : D ⥤ C) where
+  /-- The equivalence between `Hom (F X) Y` and `Hom X (G Y)` coming from an adjunction -/
+  homEquiv : ∀ x y, (F.obj x ⟶ y) ≃ (x ⟶ G.obj y)
+
+  homEquiv_nat : ∀ {a' a x y} {f : a' ⟶ a} {g : F.obj a ⟶ x} {h : x ⟶ y} ,
+                  (homEquiv a' y) (F.map f ≫ g ≫ h) = f ≫ (homEquiv a x) g ≫ G.map h
+                                 := by aesop_cat
+
+
 end CategoryTheory
