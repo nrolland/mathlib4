@@ -91,16 +91,34 @@ variable {α : Type u}
 variable {a b : C}
 variable (F : C ⥤ D)
 
--- relation
+/-! # Relation induced by a category
+
+A category induces a relation on its objects
+Two objects are connected if there is an arrow between them.
+This relation is not an equivalence, as only reflexivity holds in general.
+
+`{a:C}{b:C} (f : a ⟶ b) : isConnected a b := ⟨f, trivial⟩`
+-/
 def isConnected (c : C ) (d : C) : Prop := ∃ _ : c ⟶ d, True
 
+/--
+The relation is transported by functors
+-/
 lemma transport (h : isConnected a b) : isConnected (F.obj a) (F.obj b) := by
    obtain ⟨f,_⟩ := h
    exact ⟨F.map f, trivial⟩
 
 
--- equivalence closure
+/-! ## Relation induced by a category
+
+To make this relation an equivalence, one needs to take the equivalence closure
+Two objects are connected if there is a zigzag of arrows between them.
+
+-/
 abbrev isConnectedByZigZag  : C → C → Prop   := EqvGen isConnected
+
+private def rel {a:C}{b:C} (f : a ⟶ b) : isConnectedByZigZag a b := EqvGen.rel _ _ (⟨f, trivial⟩)
+
 
 lemma transportExt  (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj a) (F.obj b) := by
   induction h
@@ -108,7 +126,6 @@ lemma transportExt  (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj 
   case refl => exact EqvGen.refl _
   case symm w => exact EqvGen.symm _ _ w
   case trans f g => exact EqvGen.trans _ _ _ f g
-
 
 -- Other formulation
 -- def isConnectedByQuotEq (a b : C) := Quot.mk isConnected a = Quot.mk isConnected  b
@@ -152,9 +169,18 @@ def connectedComponents : Cat.{v, u} ⥤ Type u where
   map_comp f g := by simp; funext xt; obtain ⟨_,h⟩ := quotDecomp xt;
                      simp [h.symm];rfl
 
-def laxToarx : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := fun f =>
-  { obj := fun x => x |> Quotient.mk (@catisSetoid C) |> f |> Discrete.mk
-    map := sorry
+#check congr
+
+def laxToarx : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := fun fct =>
+  { obj := fun x => x |> Quotient.mk (@catisSetoid C) |> fct |> Discrete.mk
+    map := fun {a b} f => by  simp
+                              let as := toCC a
+                              let bs := toCC b
+                              have h : as = bs := Quot.sound (rel f)
+                              have h': Discrete.mk ⟦a⟧ = Discrete.mk ⟦b⟧ := congrArg Discrete.mk h
+                              let one : Discrete.mk as ⟶ ⟨as⟩ := 𝟙 ( Discrete.mk as)
+                              let two : Discrete.mk as ⟶ ⟨bs⟩ := one
+                              exact one
     map_id := sorry
     map_comp := sorry
   }
