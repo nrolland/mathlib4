@@ -219,7 +219,7 @@ variable (X : Type u)
 variable (C D : Cat)
 
 def laxToarx : (connectedComponents.obj C ⟶ X) → (C ⥤ typeToCat.obj X) := fun fct =>
-  { obj := fun x => x |> Quotient.mk (@catisSetoid C) |> fct |> Discrete.mk
+  { obj := fun x => x |> toCC |> fct |> Discrete.mk
     map := fun {a b} f => Discrete.eqToHom (congrArg fct (releqq f))
     map_id := by simp
     map_comp := by simp
@@ -261,6 +261,7 @@ def rwmorph {a b x : C} (h : x = a ) (f : a ⟶ b)  : x ⟶ b := by rw [h]; exac
 
 def asd {a b : C} (this : Discrete.mk (toCC a) = Discrete.mk (toCC b)) := rwmorph (.of (Discrete (ccSet C ))) this (𝟙 (Discrete.mk (toCC b)))
 
+-- 3 different ways of app
 def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
   homEquiv  := fun C X  ↦ {
     toFun := laxToarx X C
@@ -269,14 +270,31 @@ def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
     right_inv  := rinverse' X C  --: RightInverse invFun toFun
     }
   unit : 𝟭 Cat ⟶ connectedComponents ⋙ typeToCat :=
-    { app:= fun C  ↦ {
-          obj := fun c => c |> toCC |> Discrete.mk
-          map := fun {a b} f => by simp; rw [releqq f]; exact 𝟙 _
-          map_id := by simp
-          map_comp := fun f g => by have :=releqq f ; have := releqq g; aesop_cat
-          }
+    {
+      -- 3 different ways of app
+      app:= fun C  ↦ laxToarx _ _ (𝟙 (ccSet C))
+
+      -- app:= fun C  ↦  { obj := fun x => x |> Quotient.mk (@catisSetoid C) |> Discrete.mk
+      --                   map := fun {a b} f => Discrete.eqToHom ( (releqq f))
+      --                   map_id := by simp
+      --                   map_comp := by simp
+      --                 }
+
+      --app:= fun C  ↦ laxToarx (ccSet C) C (𝟙 (ccSet C))
+      -- app:= fun C  ↦ {
+      --     obj := fun c => c |> toCC |> Discrete.mk
+      --     map := fun {a b} f => by simp; rw [releqq f]; exact 𝟙 _
+      --     map_id := by simp
+      --     map_comp := fun f g => by have :=releqq f ; have := releqq g; aesop_cat
+      --     }
     }
-  counit := sorry
+  counit : typeToCat ⋙ connectedComponents ⟶ 𝟭 (Type u) :=  {
+      app := fun X => arxTolax X (typeToCat.obj X) (𝟙 (typeToCat.obj X) : typeToCat.obj X ⥤ typeToCat.obj X)
+      naturality := fun X Y f => by
+        funext xcc
+        obtain ⟨x,h⟩ := quotDecomp xcc
+        aesop_cat
+   }
   homEquiv_unit := sorry -- : ∀ {X Y f}, (homEquiv X Y) f = (unit : _ ⟶ _).app X ≫ G.map f := by aesop_cat
   homEquiv_counit := sorry --  : ∀ {X Y g}, (homEquiv X Y).symm g = F.map g ≫ counit.app Y := by aesop_cat
 
