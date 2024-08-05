@@ -147,10 +147,49 @@ def laxToarx : (connectedComponents.obj C ⟶ X) → (C ⟶ typeToCat.obj X) := 
 def arxTolax :  (C ⟶ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := sorry
 
 
-def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
-  homEquiv  := sorry
-  unit  := sorry
-  counit := sorry
+-- used below, bad, cf eqToHom
+def rwmorph {a b x : C} (h : x = a ) (f : a ⟶ b)  : x ⟶ b := by rw [h]; exact f
+
+
+-- def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
+--   homEquiv  := fun C X  ↦ {
+--     toFun := laxToarx X C
+--     invFun  := arxTolax X C
+--     left_inv  := linverse' X C --: LeftInverse invFun toFun
+--     right_inv  := rinverse' X C  --: RightInverse invFun toFun
+--     }
+--   unit : 𝟭 Cat ⟶ connectedComponents ⋙ typeToCat :=
+--     {
+--       -- 3 different ways of app
+--       app:= fun C  ↦ laxToarx _ _ (𝟙 (ccSet C))
+
+--       -- app:= fun C  ↦  { obj := fun x => x |> Quotient.mk (@catisSetoid C) |> Discrete.mk
+--       --                   map := fun {a b} f => Discrete.eqToHom ( (releqq f))
+--       --                   map_id := by simp
+--       --                   map_comp := by simp
+--       --                 }
+
+--       --app:= fun C  ↦ laxToarx (ccSet C) C (𝟙 (ccSet C))
+--       -- app:= fun C  ↦ {
+--       --     obj := fun c => c |> toCC |> Discrete.mk
+--       --     map := fun {a b} f => by simp; rw [releqq f]; exact 𝟙 _
+--       --     map_id := by simp
+--       --     map_comp := fun f g => by have :=releqq f ; have := releqq g; aesop_cat
+--       --     }
+--     }
+--   counit : typeToCat ⋙ connectedComponents ⟶ 𝟭 (Type u) :=  {
+--       app := fun X => arxTolax X (typeToCat.obj X) (𝟙 (typeToCat.obj X) : typeToCat.obj X ⥤ typeToCat.obj X)
+--       naturality := fun X Y f => by
+--         funext xcc
+--         obtain ⟨x,h⟩ := quotDecomp xcc
+--         aesop_cat
+--    }
+--   homEquiv_unit := fun {C X F} => by simp;
+--                                      apply Functor.hext
+--                                      · exact fun x => by rfl
+--                                      · exact fun x y f => sorry  --HEq ((laxToarx X C F).map f)   -- (laxToarx X C F).map f  = identite
+--                                                                 --     ((laxToarx (connectedComponents.obj C) C (𝟙 (ccSet C)) ≫ Discrete.functor (Discrete.mk ∘ F)).map f)
+--   homEquiv_counit := sorry --  : ∀ {X Y g}, (homEquiv X Y).symm g = F.map g ≫ counit.app Y := by aesop_cat
 
 
 end AdjCC

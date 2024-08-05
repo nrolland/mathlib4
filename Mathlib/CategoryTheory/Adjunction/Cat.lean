@@ -11,13 +11,14 @@ import Mathlib.CategoryTheory.Adjunction.Basic
 /-!
 # Adjunctions related to Cat, the category of categories
 
-The embedding `Type ⥤ Cat` has a right adjoint `Cat.objects` mapping
-each category to its set of objects.
 
+The embedding `typeToCat : Type ⥤ Cat`, which maps each type to a discrete category with elements
+of that type as objects and has no morphism except the identities, has a right adjoint `Cat.objects`
+mapping each category to its set of objects.
 
-## TODO
-The embedding `Type ⥤ Cat` has a left adjoint `Cat.connectedComponents` mapping
-each category to its set of connected components.
+It also has a left adjoint `connectedComponents` which maps a category to its set of connected
+components and functors to functions
+
 
 -/
 
@@ -51,6 +52,24 @@ private lemma rightinverse : Function.RightInverse (xryTolxy X C) (lxyToxry X C)
   intro x
   rfl
 
+-- /-- The equivalence of categories `(J → C) ≌ (Discrete J ⥤ C)`. -/
+-- @[simps]
+-- def piEquivalenceFunctorDiscrete (J : Type u₂) (C : Type u₁) [Category.{v₁} C] :
+--                                  (J → C) ≌ (Discrete J ⥤ C) where
+--   functor :=
+--     { obj := fun F => Discrete.functor F
+--       map := fun f => Discrete.natTrans (fun j => f j.as) }
+--   inverse :=
+--     { obj := fun F j => F.obj ⟨j⟩
+--       map := fun f j => f.app ⟨j⟩ }
+--   unitIso := Iso.refl _
+--   counitIso := NatIso.ofComponents (fun F => (NatIso.ofComponents (fun j => Iso.refl _)
+--     (by
+--       rintro ⟨x⟩ ⟨y⟩ f
+--       obtain rfl : x = y := Discrete.eq_of_hom f
+--       obtain rfl : f = 𝟙 _ := rfl
+--       simp))) (by aesop_cat)
+
 private def homEquiv : ∀ X C, (typeToCat.obj X ⟶ C) ≃ (X ⟶ Cat.objects.obj C) := fun X C ↦ by
     apply Equiv.mk
       (lxyToxry X C)
@@ -79,24 +98,6 @@ def adjTypeToCatCatobjects : typeToCat ⊣ Cat.objects where
                        obtain rfl := Discrete.eq_of_hom f
                        aesop_cat
   }
-
--- /-- The equivalence of categories `(J → C) ≌ (Discrete J ⥤ C)`. -/
--- @[simps]
--- def piEquivalenceFunctorDiscrete (J : Type u₂) (C : Type u₁) [Category.{v₁} C] :
---                                  (J → C) ≌ (Discrete J ⥤ C) where
---   functor :=
---     { obj := fun F => Discrete.functor F
---       map := fun f => Discrete.natTrans (fun j => f j.as) }
---   inverse :=
---     { obj := fun F j => F.obj ⟨j⟩
---       map := fun f j => f.app ⟨j⟩ }
---   unitIso := Iso.refl _
---   counitIso := NatIso.ofComponents (fun F => (NatIso.ofComponents (fun j => Iso.refl _)
---     (by
---       rintro ⟨x⟩ ⟨y⟩ f
---       obtain rfl : x = y := Discrete.eq_of_hom f
---       obtain rfl : f = 𝟙 _ := rfl
---       simp))) (by aesop_cat)
 
 end AdjDiscObj
 
@@ -147,12 +148,6 @@ lemma transportExt  (h : isConnectedByZigZag a b ) : isConnectedByZigZag (F.obj 
   case refl => exact EqvGen.refl _
   case symm w => exact EqvGen.symm _ _ w
   case trans f g => exact EqvGen.trans _ _ _ f g
-
--- Other formulation
--- def isConnectedByQuotEq (a b : C) := Quot.mk isConnected a = Quot.mk isConnected  b
--- lemma functorialityQuotClosed : isConnectedByQuotEq a b →
---                                 isConnectedByQuotEq (F.obj a) (F.obj b) :=
---    Quot.EqvGen_sound ∘ transportExt F ∘ Quot.exact isConnected
 
 --- Quotient based computation
 def catisSetoid : Setoid C where
@@ -218,7 +213,7 @@ section adjunctionCC
 variable (X : Type u)
 variable (C D : Cat)
 
-def laxToarx : (connectedComponents.obj C ⟶ X) → (C ⥤ typeToCat.obj X) := fun fct =>
+def fnToFctr : (connectedComponents.obj C ⟶ X) → (C ⥤ typeToCat.obj X) := fun fct =>
   { obj := fun x => x |> toCC |> fct |> Discrete.mk
     map := fun {a b} f => Discrete.eqToHom (congrArg fct (releqq f))
     map_id := by simp
@@ -226,77 +221,53 @@ def laxToarx : (connectedComponents.obj C ⟶ X) → (C ⥤ typeToCat.obj X) := 
   }
 
 
-def arxTolax :  (C ⥤ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := fun fctr  =>
+def fctrToFn :  (C ⥤ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := fun fctr  =>
   Quotient.lift (s:= (@catisSetoid C))
      (fun c => (fctr.obj c).as)
      (fun _ _ h => eq_of_zigzag X (transportZigzag fctr h))
 
 set_option linter.longLine false
 
-private def linverse' : Function.LeftInverse (arxTolax X C ) (laxToarx X C ) :=
+private def linverse' : Function.LeftInverse (fctrToFn X C ) (fnToFctr X C ) :=
   fun (f : connectedComponents.obj C ⟶ X) => by
     funext xcc
     obtain ⟨x,h⟩ := quotDecomp xcc
     calc
-      arxTolax X C (laxToarx X C f) xcc =  arxTolax X C (laxToarx X C f) ⟦x⟧ := by rw [<- h]
-      _  = ((laxToarx X C f).obj x).as := rfl
+      fctrToFn X C (fnToFctr X C f) xcc =  fctrToFn X C (fnToFctr X C f) ⟦x⟧ := by rw [<- h]
+      _  = ((fnToFctr X C f).obj x).as := rfl
       _  = f ⟦x⟧ := rfl
       _  = f xcc := by rw [h]
 
-private def rinverse' : Function.RightInverse (arxTolax X C ) (laxToarx X C ) :=
+private def rinverse' : Function.RightInverse (fctrToFn X C ) (fnToFctr X C ) :=
   fun (fctr : C ⥤ (typeToCat.obj X)) => by
     fapply Functor.hext
     · intro c; rfl
     · intro c d f
       have cdeq : fctr.obj c = fctr.obj d := f |> fctr.map |> Discrete.eq_of_hom |> congrArg Discrete.mk
       let ident : (discreteCategory X).Hom (fctr.obj c) (fctr.obj d) := by rw [cdeq]; exact 𝟙 _
-      let p := Subsingleton.helim rfl ident ((laxToarx X C (arxTolax X C fctr)).map f)
+      let p := Subsingleton.helim rfl ident ((fnToFctr X C (fctrToFn X C fctr)).map f)
       exact (p.symm).trans (Subsingleton.helim rfl ident (fctr.map f) : HEq ident (fctr.map f))
 
 
 
-def rwmorph {a b x : C} (h : x = a ) (f : a ⟶ b)  : x ⟶ b := by rw [h]; exact f
--- theorem eq_of_hom {X Y : Discrete α} (i : X ⟶ Y) : X.as = Y.as :=  i.down.down
 
-
-def asd {a b : C} (this : Discrete.mk (toCC a) = Discrete.mk (toCC b)) := rwmorph (.of (Discrete (ccSet C ))) this (𝟙 (Discrete.mk (toCC b)))
-
--- 3 different ways of app
 def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
   homEquiv  := fun C X  ↦ {
-    toFun := laxToarx X C
-    invFun  := arxTolax X C
-    left_inv  := linverse' X C --: LeftInverse invFun toFun
-    right_inv  := rinverse' X C  --: RightInverse invFun toFun
+    toFun := fnToFctr X C
+    invFun  := fctrToFn X C
+    left_inv  := linverse' X C
+    right_inv  := rinverse' X C
     }
-  unit : 𝟭 Cat ⟶ connectedComponents ⋙ typeToCat :=
-    {
-      -- 3 different ways of app
-      app:= fun C  ↦ laxToarx _ _ (𝟙 (ccSet C))
-
-      -- app:= fun C  ↦  { obj := fun x => x |> Quotient.mk (@catisSetoid C) |> Discrete.mk
-      --                   map := fun {a b} f => Discrete.eqToHom ( (releqq f))
-      --                   map_id := by simp
-      --                   map_comp := by simp
-      --                 }
-
-      --app:= fun C  ↦ laxToarx (ccSet C) C (𝟙 (ccSet C))
-      -- app:= fun C  ↦ {
-      --     obj := fun c => c |> toCC |> Discrete.mk
-      --     map := fun {a b} f => by simp; rw [releqq f]; exact 𝟙 _
-      --     map_id := by simp
-      --     map_comp := fun f g => by have :=releqq f ; have := releqq g; aesop_cat
-      --     }
-    }
+  unit : 𝟭 Cat ⟶ connectedComponents ⋙ typeToCat := { app:= fun C  ↦ fnToFctr _ _ (𝟙 (ccSet C)) }
   counit : typeToCat ⋙ connectedComponents ⟶ 𝟭 (Type u) :=  {
-      app := fun X => arxTolax X (typeToCat.obj X) (𝟙 (typeToCat.obj X) : typeToCat.obj X ⥤ typeToCat.obj X)
+      app := fun X => fctrToFn X (typeToCat.obj X) (𝟙 (typeToCat.obj X) : typeToCat.obj X ⥤ typeToCat.obj X)
       naturality := fun X Y f => by
         funext xcc
         obtain ⟨x,h⟩ := quotDecomp xcc
         aesop_cat
    }
-  homEquiv_unit := sorry -- : ∀ {X Y f}, (homEquiv X Y) f = (unit : _ ⟶ _).app X ≫ G.map f := by aesop_cat
-  homEquiv_counit := sorry --  : ∀ {X Y g}, (homEquiv X Y).symm g = F.map g ≫ counit.app Y := by aesop_cat
+  homEquiv_unit := fun {C X h} => Functor.hext (fun _ => by rfl) (fun _ _ _ => by rfl)
+  homEquiv_counit := fun {C X G} => by funext cc;obtain ⟨_,_⟩ := quotDecomp cc; aesop_cat
 
 
 end adjunctionCC
