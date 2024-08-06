@@ -9,9 +9,7 @@ import Mathlib.CategoryTheory.Adjunction.Basic
 universe v u
 namespace CategoryTheory.Cat
 
-
 variable {C D : Cat}
-variable {α : Type u}
 variable {a b : C}
 variable (F : C ⥤ D)
 
@@ -27,7 +25,7 @@ def isConnected (a : C ) (b : C) : Prop := ∃ _ : a ⟶ b, True
 def connect (f : a ⟶ b) : isConnected a b := ⟨f,trivial⟩
 
 /-- The relation is transported by functors -/
-lemma transport (h : isConnected a b) : isConnected (F.obj a) (F.obj b) := by
+lemma transport (F : C ⥤ D) (h : isConnected a b) : isConnected (F.obj a) (F.obj b) := by
   obtain ⟨f,_⟩ := h
   exact ⟨F.map f, trivial⟩
 
@@ -54,9 +52,6 @@ def catisSetoid (C :Cat) : Setoid C := EqvGen.Setoid isConnected
 -- Transport d'un x vers sa composante
 def toCC (x : C) : Quotient (catisSetoid C) := Quotient.mk (catisSetoid C) x
 
-def releqq (f : a ⟶ b) : toCC a = toCC b := connectByZigZag f |> .rel _ _ |> Quot.EqvGen_sound
-
-
 -- Ensemble des composantes d'une categorie
 abbrev ccSet  (C : Cat) := Quotient (catisSetoid C)
 
@@ -66,7 +61,9 @@ private def fmap {X Y : Cat} (F : X ⟶ Y) : (ccSet X) → (ccSet Y) :=
     (toCC ∘ F.obj  : X → ccSet Y)
     (fun _ _ => Quot.sound ∘ transportZigZag F )
 
-private abbrev liftedMk (s : Setoid α)  := Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
+
+private abbrev liftedMk {α} (s : Setoid α)  :=
+  Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
 
 
 /- The functor for connected components -/
@@ -80,6 +77,9 @@ def connectedComponents : Cat.{v, u} ⥤ Type u where
       _          = 𝟙 (ccSet X)   := by rfl
   map_comp f g := by simp; funext xt; obtain ⟨_,h⟩ := Quotient.exists_rep xt;
                      simp [h.symm];rfl
+
+def releqq (f : a ⟶ b) : toCC a = toCC b := connectByZigZag f |> .rel _ _ |> Quot.EqvGen_sound
+
 
 def eq_of_zigzag (X) {a b : typeToCat.obj X } (h : isConnectedByZigZag a b) : a.as = b.as := by
   induction h with
