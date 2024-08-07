@@ -14,15 +14,6 @@ variable {C D : Cat}
 variable {a b c : C}
 variable (F : C ⥤ D)
 
-/-! # Relation induced by a category
-
-A category induces a relation on its objects
-Two objects are connected if there is an arrow between them.
-This relation is not an equivalence but can be turned into one.
--/
-
-
-
 
 
 /-! ## Equivalence relation induced by a category
@@ -35,10 +26,7 @@ iif there is a zigzag of arrows between them.
 def isConnected (a : C ) (b : C) : Prop := Nonempty (a ⟶ b)
 abbrev isConnectedByZigZag : C → C → Prop := EqvGen (isConnected)
 
-abbrev isConnectedByZigZag' : Setoid C := Quiver.zigzagSetoid C
-
-private def connectByZigZag' : (f : a ⟶ b) -> isConnectedByZigZag'.r a b :=
-  Nonempty.intro ∘ Quiver.Hom.toPath ∘ Sum.inl
+abbrev isConnectedByZigZag' (C:Cat) : Setoid C := Quiver.zigzagSetoid C
 
 def transportZigzag (h : isConnectedByZigZag a b) : isConnectedByZigZag (F.obj a) ( F.obj b) :=
   h.rec (fun  _ _ h => h.elim (fun f =>  EqvGen.rel _ _  ⟨F.map f⟩))
@@ -46,13 +34,15 @@ def transportZigzag (h : isConnectedByZigZag a b) : isConnectedByZigZag (F.obj a
     (fun _ _ _ ih => EqvGen.symm _ _ ih)
     (fun  _ _ _ _ _ ih1 ih2 => EqvGen.trans _ _ _ ih1 ih2)
 
-lemma transportZigZag' : isConnectedByZigZag'.r a b → isConnectedByZigZag'.r (F.obj a) (F.obj b)
-  | ⟨p⟩ => p.rec (⟨Quiver.Path.nil⟩)
-      (fun _ f pd' => pd'.elim (fun pd =>
+lemma transportZigZag' (haea : (isConnectedByZigZag' C).r a b) : (isConnectedByZigZag' D).r (F.obj a) (F.obj b) := by
+  have ⟨p⟩ := haea
+  induction p
+  case nil => exact ⟨Quiver.Path.nil⟩
+  case cons b c p' f ih  =>
+    exact (ih ⟨p'⟩).elim (fun pd =>
       f.elim
         (fun f => ⟨Quiver.Path.cons pd (.inl (F.map f))⟩)
-        (fun f => ⟨Quiver.Path.cons pd (.inr (F.map f))⟩)))
-
+        (fun f => ⟨Quiver.Path.cons pd (.inr (F.map f))⟩))
 
 
 --- Quotient based computation
