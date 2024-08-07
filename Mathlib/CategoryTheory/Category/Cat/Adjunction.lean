@@ -78,10 +78,10 @@ def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
     right_inv  := fun fctr =>
       Functor.hext (fun _ => rfl)
         (fun c d f => by
-          have cdeq : fctr.obj c = _ := f |> fctr.map |> Discrete.eq_of_hom |> congrArg Discrete.mk
-          let ident : (discreteCategory X).Hom (fctr.obj c) (fctr.obj d) := by rw [cdeq]; exact 𝟙 _
-          let p := Subsingleton.helim rfl ident ((fnToFctr  (fctrToFn fctr)).map f)
-          exact (p.symm).trans (Subsingleton.helim rfl ident (fctr.map f) : HEq ident (fctr.map f)))
+          have common : (discreteCategory X).Hom (fctr.obj c) (fctr.obj d) := fctr.map f
+          let p := Subsingleton.helim rfl common ((fnToFctr (fctrToFn fctr)).map f)
+          let q := Subsingleton.helim rfl common (fctr.map f)
+          exact (p.symm).trans q)
     }
   unit := { app:= fun C  ↦ fnToFctr (𝟙 _) }
   counit :=  {
