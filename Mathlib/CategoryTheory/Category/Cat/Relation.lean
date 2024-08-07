@@ -20,15 +20,15 @@ A category induces a relation on its objects
 Two objects are connected if there is an arrow between them.
 This relation is not an equivalence, as only reflexivity holds in general.
 -/
-def isConnected (a : C ) (b : C) : Prop := ∃ _ : a ⟶ b, True
+def isConnected (a : C ) (b : C) : Prop := Nonempty (a ⟶ b)
 
 /-- a morphism `f : a ⟶ b` is a witness that `a` is connected to `b` -/
-def connect (f : a ⟶ b) : isConnected a b := ⟨f,trivial⟩
+def connect (f : a ⟶ b) : isConnected a b := Nonempty.intro f
 
 /-- The relation is transported by functors -/
 lemma transport (F : C ⥤ D) (h : isConnected a b) : isConnected (F.obj a) (F.obj b) := by
-  obtain ⟨f,_⟩ := h
-  exact ⟨F.map f, trivial⟩
+  obtain ⟨f⟩ := h
+  exact ⟨F.map f⟩
 
 /-! ## Equivalence relation induced by a category
 
@@ -107,7 +107,7 @@ def releqq (f : a ⟶ b) : toCC a = toCC b := connectByZigZag f |> .rel _ _ |> Q
 
 def eq_of_zigzag (X) {a b : typeToCat.obj X } (h : isConnectedByZigZag a b) : a.as = b.as := by
   induction h with
-  | rel _ _ h => let ⟨f,_⟩ := h;exact Discrete.eq_of_hom f
+  | rel _ _ h => let ⟨f⟩ := h;exact Discrete.eq_of_hom f
   | refl => rfl
   | symm _ _ _ ih => exact ih.symm
   | trans _ _ _ _ _ ih1 ih2 => exact ih1.trans ih2
@@ -115,7 +115,7 @@ def eq_of_zigzag (X) {a b : typeToCat.obj X } (h : isConnectedByZigZag a b) : a.
 def transportZigzag (F : C ⥤ D) (h : isConnectedByZigZag a b)
              : isConnectedByZigZag (F.obj a) ( F.obj b) := by
   induction h with
-  | rel _ _ h => let ⟨f,_⟩ := h; exact EqvGen.rel _ _  ⟨F.map f, trivial⟩
+  | rel _ _ h => let ⟨f⟩ := h; exact EqvGen.rel _ _  ⟨F.map f⟩
   | refl => exact EqvGen.refl _
   | symm _ _ _ ih => exact EqvGen.symm _ _ ih
   | trans _ _ _ _ _ ih1 ih2 => exact EqvGen.trans _ _ _ ih1 ih2
