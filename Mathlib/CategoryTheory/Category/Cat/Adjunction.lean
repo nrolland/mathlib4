@@ -53,7 +53,7 @@ def typeToCatObjectsAdj : typeToCat ⊣ Cat.objects where
 
 private def fnToFctr {X C} (fct : connectedComponents.obj C ⟶ X) : (C ⥤ typeToCat.obj X) where
   obj :=  Discrete.mk ∘ fct ∘ toCC
-  map :=  Discrete.eqToHom ∘ congrArg fct ∘ releqq
+  map :=  Discrete.eqToHom ∘ congrArg fct ∘ cc_eq_of_connected
 
 private def fctrToFn {X} {C : Cat} (fctr :C ⥤ typeToCat.obj X)  : (connectedComponents.obj C ⟶ X) :=
   Quotient.lift (s:= Quiver.zigzagSetoid C)
@@ -64,7 +64,7 @@ def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
   homEquiv C X := {
     toFun := fun fct => {
       obj :=  Discrete.mk ∘ fct ∘ toCC
-      map :=  Discrete.eqToHom ∘ congrArg fct ∘ releqq }
+      map :=  Discrete.eqToHom ∘ congrArg fct ∘ cc_eq_of_connected }
     invFun  := fctrToFn
     left_inv  := fun f =>
       funext

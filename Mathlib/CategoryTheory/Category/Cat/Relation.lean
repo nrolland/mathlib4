@@ -36,6 +36,9 @@ abbrev zigzagSetoidC : Setoid C := zigzagSetoid C
 -- Transport of some x to its component
 def toCC (x : C) := WeaklyConnectedComponent.mk x
 
+def cc_eq_of_connected (f : a ⟶ b) : toCC a = toCC b :=
+  (.intro ∘ Hom.toPath ∘ Sum.inl) f |> .rel _ _ |> Quot.EqvGen_sound
+
 /-- Functors transport zigzag in the domain category to zigzags in the codomain category -/
 lemma transportZigzag : zigzagSetoidC.r a b → zigzagSetoidC.r (F.obj a) (F.obj b)
   | ⟨p⟩ => p.rec (⟨Quiver.Path.nil⟩)
@@ -71,13 +74,6 @@ def connectedComponents.{v,u} : Cat.{v, u} ⥤ Type u where
       _          = 𝟙 (WeaklyConnectedComponent C)   := by rfl
   map_comp f g := by simp; funext xt; obtain ⟨_,h⟩ := Quotient.exists_rep xt;
                      simp [h.symm];rfl
-
-
-def releqq (f : a ⟶ b) : toCC a = toCC b :=
-  (Nonempty.intro ∘ Quiver.Hom.toPath ∘ Sum.inl) f |> .rel _ _ |> Quot.EqvGen_sound
---abbrev wccSet  (C : Cat) := Quotient (Quiver.zigzagSetoid C)
-
-
 
 
 end CategoryTheory.Cat
