@@ -7,14 +7,13 @@ import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Adjunction.Basic
 import Mathlib.Combinatorics.Quiver.ConnectedComponent
 
-universe v u
 namespace CategoryTheory.Cat
 
 variable {C D : Cat}
 variable {a b c : C}
 variable (F : C ⥤ D)
 
-/-! # Relation induced by a category
+/-!# Relation induced by a category
 
 The hom-set of a category can be seen as a proof relevant relation on its objects :
 Two objects are connected if there is an arrow between them.
@@ -61,7 +60,7 @@ private abbrev liftedMk {α} (s : Setoid α) :=
   Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
 
 /- The functor for connected components -/
-def connectedComponents : Cat.{v, u} ⥤ Type u where
+def connectedComponents.{v,u} : Cat.{v, u} ⥤ Type u where
   obj C := WeaklyConnectedComponent C
   map F := ccfmap F
   map_id C := by calc
