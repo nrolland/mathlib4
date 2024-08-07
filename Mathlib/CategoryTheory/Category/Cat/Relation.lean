@@ -5,12 +5,13 @@ Authors: Nicolas Rolland
 -/
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Adjunction.Basic
+import Mathlib.Combinatorics.Quiver.ConnectedComponent
 
 universe v u
 namespace CategoryTheory.Cat
 
 variable {C D : Cat}
-variable {a b : C}
+variable {a b c : C}
 variable (F : C ⥤ D)
 
 /-! # Relation induced by a category
@@ -36,6 +37,8 @@ One can take its equivalence closure, under which two objects are connected
 iif there is a zigzag of arrows between them.
 -/
 abbrev isConnectedByZigZag : C → C → Prop := EqvGen isConnected
+abbrev isConnectedByZigZag' (C:Cat) : Setoid C := Quiver.zigzagSetoid C
+
 
 private def connectByZigZag (f : a ⟶ b) : isConnectedByZigZag a b := connect f |>  EqvGen.rel _ _
 
@@ -46,14 +49,35 @@ lemma transportZigZag (h : isConnectedByZigZag a b) : isConnectedByZigZag (F.obj
   case symm w => exact EqvGen.symm _ _ w
   case trans f g => exact EqvGen.trans _ _ _ f g
 
+
+-- lemma transportZigZag':  ((isConnectedByZigZag' C).r a b) -> (isConnectedByZigZag' D).r (F.obj a) (F.obj b)
+--   | ⟨h⟩ => (match h with
+--             | .nil =>  Quiver.Path.nil
+--             | .cons p f =>
+--                 match f with
+--                 | Sum.inl f => Quiver.Path.cons (transportZigZag' ⟨p⟩) (Sum.inl (F.map f))
+--                 | Sum.inr f =>  Quiver.Path.cons (transportZigZag' ⟨p⟩) (Sum.inr (F.map f)))
+--           |> Nonempty.intro
+
+lemma transportZigZag':  ((isConnectedByZigZag' C).r a b) -> (isConnectedByZigZag' D).r (F.obj a) (F.obj b)
+  | ⟨h⟩ => by induction h
+              · exact Nonempty.intro Quiver.Path.nil
+              · sorry
+
+
 --- Quotient based computation
 def catisSetoid (C :Cat) : Setoid C := EqvGen.Setoid isConnected
 
--- Transport d'un x vers sa composante
-def toCC (x : C) : Quotient (catisSetoid C) := Quotient.mk (catisSetoid C) x
+#check fun (C :Cat)  => C.str.toQuiver
 
 -- Ensemble des composantes d'une categorie
 abbrev ccSet  (C : Cat) := Quotient (catisSetoid C)
+abbrev wccSet  (C : Cat) := Quiver.WeaklyConnectedComponent C
+
+-- Transport d'un x vers sa composante
+def toCC (x : C) : ccSet C := Quotient.mk (catisSetoid C) x
+def toCC' (x : C): wccSet C := Quotient.mk (Quiver.zigzagSetoid C) x
+
 
 private def fmap {X Y : Cat} (F : X ⟶ Y) : (ccSet X) → (ccSet Y) :=
   Quotient.lift
