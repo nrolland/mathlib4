@@ -40,7 +40,7 @@ private def typeToCatObjectsAdjCounitApp : (Cat.objects ⋙ typeToCat).obj C ⥤
 
 /-- `typeToCat : Type ⥤ Cat` is left adjoint to `Cat.objects : Cat ⥤ Type` -/
 def typeToCatObjectsAdj : typeToCat ⊣ Cat.objects where
-  homEquiv  := typeToCatObjectsAdjHomEquiv
+  homEquiv := typeToCatObjectsAdjHomEquiv
   unit := { app:= fun _  ↦ Discrete.mk }
   counit := {
     app := typeToCatObjectsAdjCounitApp
@@ -51,49 +51,41 @@ def typeToCatObjectsAdj : typeToCat ⊣ Cat.objects where
 
 --------
 
-def fnToFctr : (connectedComponents.obj C ⟶ X) → (C ⥤ typeToCat.obj X) := fun fct => {
-      obj :=  Discrete.mk ∘ fct ∘ toCC
-      map :=  Discrete.eqToHom ∘ congrArg fct ∘ releqq }
+private def fnToFctr {X C} (fct : connectedComponents.obj C ⟶ X) : (C ⥤ typeToCat.obj X) where
+  obj :=  Discrete.mk ∘ fct ∘ toCC
+  map :=  Discrete.eqToHom ∘ congrArg fct ∘ releqq
 
-def fctrToFn :  (C ⥤ typeToCat.obj X) → (connectedComponents.obj C ⟶ X) := fun fctr  =>
-  Quotient.lift (s:= (@catisSetoid C))
-     (fun c => (fctr.obj c).as)
-     (fun _ _ h => eq_of_zigzag X (transportZigzag fctr h))
-
-set_option linter.longLine false
-
-private def linverse' : Function.LeftInverse (fctrToFn X C ) (fnToFctr X C ) :=
-  fun (f : connectedComponents.obj C ⟶ X) => by
-    funext xcc
-    obtain ⟨x,h⟩ := Quotient.exists_rep xcc
-    calc
-      fctrToFn X C (fnToFctr X C f) xcc =  fctrToFn X C (fnToFctr X C f) ⟦x⟧ := by rw [<- h]
-      _  = ((fnToFctr X C f).obj x).as := rfl
-      _  = f ⟦x⟧ := rfl
-      _  = f xcc := by rw [h]
-
-private def rinverse' : Function.RightInverse (fctrToFn X C ) (fnToFctr X C ) :=
-  fun (fctr : C ⥤ (typeToCat.obj X)) => by
-    fapply Functor.hext
-    · intro c; rfl
-    · intro c d f
-      have cdeq : fctr.obj c = fctr.obj d := f |> fctr.map |> Discrete.eq_of_hom |> congrArg Discrete.mk
-      let ident : (discreteCategory X).Hom (fctr.obj c) (fctr.obj d) := by rw [cdeq]; exact 𝟙 _
-      let p := Subsingleton.helim rfl ident ((fnToFctr X C (fctrToFn X C fctr)).map f)
-      exact (p.symm).trans (Subsingleton.helim rfl ident (fctr.map f) : HEq ident (fctr.map f))
+private def fctrToFn {X} {C : Cat} (fctr :C ⥤ typeToCat.obj X)  : (connectedComponents.obj C ⟶ X) :=
+  Quotient.lift (s:= Quiver.zigzagSetoid C)
+    (fun c => (fctr.obj c).as)
+    (fun _ _ h => eq_of_zigzag X (transportZigzag fctr h))
 
 def isadj_CC_TypeToCat : connectedComponents ⊣ typeToCat where
-  homEquiv  := fun C X  ↦ {
+  homEquiv C X := {
     toFun := fun fct => {
       obj :=  Discrete.mk ∘ fct ∘ toCC
       map :=  Discrete.eqToHom ∘ congrArg fct ∘ releqq }
-    invFun  := fctrToFn X C
-    left_inv  := linverse' X C
-    right_inv  := rinverse' X C
+    invFun  := fctrToFn
+    left_inv  := fun f =>
+      funext
+      (fun xcc => by
+        obtain ⟨x,h⟩ := Quotient.exists_rep xcc
+        calc
+          fctrToFn (fnToFctr f) xcc =  fctrToFn (fnToFctr f) ⟦x⟧ := by rw [<- h]
+          _  = ((fnToFctr  f).obj x).as := rfl
+          _  = f ⟦x⟧ := rfl
+          _  = f xcc := by rw [h])
+    right_inv  := fun fctr =>
+      Functor.hext (fun _ => rfl)
+        (fun c d f => by
+          have cdeq : fctr.obj c = _ := f |> fctr.map |> Discrete.eq_of_hom |> congrArg Discrete.mk
+          let ident : (discreteCategory X).Hom (fctr.obj c) (fctr.obj d) := by rw [cdeq]; exact 𝟙 _
+          let p := Subsingleton.helim rfl ident ((fnToFctr  (fctrToFn fctr)).map f)
+          exact (p.symm).trans (Subsingleton.helim rfl ident (fctr.map f) : HEq ident (fctr.map f)))
     }
-  unit  := { app:= fun C  ↦ fnToFctr _ _ (𝟙 (ccSet C)) }
-  counit  :=  {
-      app := fun X => fctrToFn X (typeToCat.obj X) (𝟙 (typeToCat.obj X) : typeToCat.obj X ⥤ typeToCat.obj X)
+  unit := { app:= fun C  ↦ fnToFctr (𝟙 _) }
+  counit :=  {
+      app := fun X => fctrToFn (𝟙 typeToCat.obj X)
       naturality := fun _ _ _ =>
         funext (fun xcc => by
           obtain ⟨x,h⟩ := Quotient.exists_rep xcc

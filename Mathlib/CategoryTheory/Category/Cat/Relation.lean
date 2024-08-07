@@ -16,91 +16,68 @@ variable (F : C ⥤ D)
 
 /-! # Relation induced by a category
 
-A category induces a relation on its objects
+The hom-set of a category can be seen as a proof relevant relation on its objects :
 Two objects are connected if there is an arrow between them.
 This relation is not an equivalence but can be turned into one.
--/
 
+## Equivalence relation induced by a category
 
-
-
-
-/-! ## Equivalence relation induced by a category
-
-To make the previous relation is not an equivalence.
-One can take its equivalence closure, under which two objects are connected
+One can take the equivalence closure, under which two objects are connected
 iif there is a zigzag of arrows between them.
+
+One way to achieve this is to consider paths of forward and backward orientation
+with respect to the original quiver, as in `Quiver.ConnectedComponent.zigzagSetoid`
+
+This specific construction does not know which particular zigzag exists, only that there is one
 -/
+open Quiver
 
-def isConnected (a : C ) (b : C) : Prop := Nonempty (a ⟶ b)
-abbrev isConnectedByZigZag : C → C → Prop := EqvGen (isConnected)
+abbrev zigzagSetoidC : Setoid C := zigzagSetoid C
 
-abbrev isConnectedByZigZag' : Setoid C := Quiver.zigzagSetoid C
+-- Transport of some x to its component
+def toCC (x : C) := WeaklyConnectedComponent.mk x
 
-private def connectByZigZag' : (f : a ⟶ b) -> isConnectedByZigZag'.r a b :=
-  Nonempty.intro ∘ Quiver.Hom.toPath ∘ Sum.inl
-
-def transportZigzag (h : isConnectedByZigZag a b) : isConnectedByZigZag (F.obj a) ( F.obj b) :=
-  h.rec (fun  _ _ h => h.elim (fun f =>  EqvGen.rel _ _  ⟨F.map f⟩))
-    (fun _ => EqvGen.refl _)
-    (fun _ _ _ ih => EqvGen.symm _ _ ih)
-    (fun  _ _ _ _ _ ih1 ih2 => EqvGen.trans _ _ _ ih1 ih2)
-
-lemma transportZigZag' : isConnectedByZigZag'.r a b → isConnectedByZigZag'.r (F.obj a) (F.obj b)
+/-- Functors transport zigzag in the domain category to zigzags in the codomain category -/
+lemma transportZigzag : zigzagSetoidC.r a b → zigzagSetoidC.r (F.obj a) (F.obj b)
   | ⟨p⟩ => p.rec (⟨Quiver.Path.nil⟩)
       (fun _ f pd' => pd'.elim (fun pd =>
-      f.elim
-        (fun f => ⟨Quiver.Path.cons pd (.inl (F.map f))⟩)
-        (fun f => ⟨Quiver.Path.cons pd (.inr (F.map f))⟩)))
+        f.elim
+          (fun f => ⟨Quiver.Path.cons pd (.inl (F.map f))⟩)
+          (fun f => ⟨Quiver.Path.cons pd (.inr (F.map f))⟩)))
 
+/-- A zigzag in the discrete category entails an equality of its extremities -/
+def eq_of_zigzag (X) {a b : typeToCat.obj X }  : (h : zigzagSetoidC.r a b) → a.as = b.as
+| ⟨p⟩ => p.rec rfl
+    (fun _ bc abeq => abeq.trans (bc.elim (Discrete.eq_of_hom) (Eq.symm ∘ Discrete.eq_of_hom)))
 
-
---- Quotient based computation
-def catisSetoid (C :Cat) : Setoid C := EqvGen.Setoid isConnected
-
-#check fun (C :Cat)  => C.str.toQuiver
-
--- Ensemble des composantes d'une categorie
-abbrev ccSet  (C : Cat) := Quotient (catisSetoid C)
-abbrev wccSet  (C : Cat) := Quotient (Quiver.zigzagSetoid C)
-
--- Transport d'un x vers sa composante
-def toCC (x : C) : ccSet C := Quotient.mk (catisSetoid C) x
-def toCC' (x : C): wccSet C := Quotient.mk (Quiver.zigzagSetoid C) x
-
-
-private def fmap {X Y : Cat} (F : X ⟶ Y) : (wccSet X) → (wccSet Y) :=
+/-- fmap transports a functor to a function beetwen CC -/
+private def ccfmap : (WeaklyConnectedComponent C) → (WeaklyConnectedComponent D) :=
   Quotient.lift
-    (s:= Quiver.zigzagSetoid X)
-    (toCC' ∘ F.obj  : X → wccSet Y)
-    (fun _ _ => Quot.sound ∘ transportZigZag' F )
+    (s:= zigzagSetoidC)
+    (Quotient.mk zigzagSetoidC ∘ F.obj)
+    (fun _ _ => Quot.sound ∘ transportZigzag F)
 
-
-private abbrev liftedMk {α} (s : Setoid α)  :=
+private abbrev liftedMk {α} (s : Setoid α) :=
   Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
-
 
 /- The functor for connected components -/
 def connectedComponents : Cat.{v, u} ⥤ Type u where
-  obj C := wccSet C -- maps a category to its set of CC
-  map F := fmap F  -- transport a functor to a function beetwen CC
-  map_id X := by calc
-      fmap (𝟙 X) =  liftedMk (Quiver.zigzagSetoid X) := (rfl : fmap (𝟙 X) = liftedMk (Quiver.zigzagSetoid X))
+  obj C := WeaklyConnectedComponent C
+  map F := ccfmap F
+  map_id C := by calc
+      ccfmap (𝟙 C) =  liftedMk (zigzagSetoidC) :=
+        (rfl : ccfmap (𝟙 C) = liftedMk (zigzagSetoidC))
       _          = fun x => x    := funext (fun xt => by obtain ⟨x,h⟩ := Quotient.exists_rep xt
                                                          simp [h.symm])
-      _          = 𝟙 (wccSet X)   := by rfl
+      _          = 𝟙 (WeaklyConnectedComponent C)   := by rfl
   map_comp f g := by simp; funext xt; obtain ⟨_,h⟩ := Quotient.exists_rep xt;
                      simp [h.symm];rfl
 
-def releqq (f : a ⟶ b) : toCC' a = toCC' b := connectByZigZag' f |> .rel _ _ |> Quot.EqvGen_sound
 
+def releqq (f : a ⟶ b) : toCC a = toCC b :=
+  (Nonempty.intro ∘ Quiver.Hom.toPath ∘ Sum.inl) f |> .rel _ _ |> Quot.EqvGen_sound
+--abbrev wccSet  (C : Cat) := Quotient (Quiver.zigzagSetoid C)
 
-def eq_of_zigzag (X) {a b : typeToCat.obj X } (h : isConnectedByZigZag a b) : a.as = b.as := by
-  induction h with
-  | rel _ _ h => let ⟨f⟩ := h;exact Discrete.eq_of_hom f
-  | refl => rfl
-  | symm _ _ _ ih => exact ih.symm
-  | trans _ _ _ _ _ ih1 ih2 => exact ih1.trans ih2
 
 
 
