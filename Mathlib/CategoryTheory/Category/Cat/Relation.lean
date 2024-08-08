@@ -10,12 +10,12 @@ import Mathlib.Combinatorics.Quiver.ConnectedComponent
 namespace CategoryTheory.Cat
 
 variable {C D : Cat}
-variable {a b c : C}
+variable {a b : C}
 variable (F : C ⥤ D)
 
 /-!# Relation induced by a category
 
-The hom-set of a category can be seen as a proof relevant relation on its objects :
+The hom-set of a category can be seen as a (proof relevant) relation on its objects :
 Two objects are connected if there is an arrow between them.
 This relation is not an equivalence but can be turned into one.
 
@@ -24,10 +24,12 @@ This relation is not an equivalence but can be turned into one.
 One can take the equivalence closure, under which two objects are connected
 iif there is a zigzag of arrows between them.
 
-One way to achieve this is to consider paths of forward and backward orientation
-with respect to the original quiver, as in `Quiver.ConnectedComponent.zigzagSetoid`
+As a relation, it is proof irrelavant, in the sense that it does not know by which specific zigzag
+two elements are connected, only that they are.
 
-This specific construction does not know which particular zigzag exists, only that there is one
+## Implmentation notes
+
+We rely on `Quiver.ConnectedComponent`
 -/
 open Quiver
 
@@ -42,10 +44,10 @@ def cc_eq_of_connected (f : a ⟶ b) : toCC a = toCC b :=
 /-- Functors transport zigzag in the domain category to zigzags in the codomain category -/
 lemma transportZigzag : zigzagSetoidC.r a b → zigzagSetoidC.r (F.obj a) (F.obj b)
   | ⟨p⟩ => p.rec (⟨Quiver.Path.nil⟩)
-      (fun _ f pd' => pd'.elim (fun pd =>
+      (fun _ f pd' ↦ pd'.elim (fun pd ↦
         f.elim
-          (fun f => ⟨Quiver.Path.cons pd (.inl (F.map f))⟩)
-          (fun f => ⟨Quiver.Path.cons pd (.inr (F.map f))⟩)))
+          (fun f ↦ ⟨Quiver.Path.cons pd (.inl (F.map f))⟩)
+          (fun f ↦ ⟨Quiver.Path.cons pd (.inr (F.map f))⟩)))
 
 /-- A zigzag in the discrete category entails an equality of its extremities -/
 def eq_of_zigzag (X) {a b : typeToCat.obj X }  : (h : zigzagSetoidC.r a b) → a.as = b.as
@@ -57,23 +59,20 @@ private def ccfmap : (WeaklyConnectedComponent C) → (WeaklyConnectedComponent 
   Quotient.lift
     (s:= zigzagSetoidC)
     (Quotient.mk zigzagSetoidC ∘ F.obj)
-    (fun _ _ => Quot.sound ∘ transportZigzag F)
+    (fun _ _ ↦ Quot.sound ∘ transportZigzag F)
 
 private abbrev liftedMk {α} (s : Setoid α) :=
-  Quotient.lift (Quotient.mk s) (fun _ _ => Quotient.sound)
+  Quotient.lift (Quotient.mk s) (fun _ _ ↦ Quotient.sound)
 
-/- The functor for connected components -/
+/- The connected components functor -/
 def connectedComponents.{v,u} : Cat.{v, u} ⥤ Type u where
   obj C := WeaklyConnectedComponent C
   map F := ccfmap F
   map_id C := by calc
-      ccfmap (𝟙 C) =  liftedMk (zigzagSetoidC) :=
-        (rfl : ccfmap (𝟙 C) = liftedMk (zigzagSetoidC))
-      _          = fun x => x    := funext (fun xt => by obtain ⟨x,h⟩ := Quotient.exists_rep xt
-                                                         simp [h.symm])
-      _          = 𝟙 (WeaklyConnectedComponent C)   := by rfl
-  map_comp f g := by simp; funext xt; obtain ⟨_,h⟩ := Quotient.exists_rep xt;
-                     simp [h.symm];rfl
-
+    ccfmap (𝟙 C) = liftedMk (zigzagSetoidC) := (rfl : ccfmap (𝟙 C) = liftedMk zigzagSetoidC)
+    _ = id := funext fun x ↦ (Quotient.exists_rep x).elim (fun _ h ↦ by simp [h.symm])
+    _ = 𝟙 (WeaklyConnectedComponent C)   := by rfl
+  map_comp f g := funext (fun x ↦ (Quotient.exists_rep x).elim (fun _ h => by
+  simp only [h.symm, types_comp_apply];rfl))
 
 end CategoryTheory.Cat
