@@ -5,10 +5,10 @@ Authors: Nicolas Rolland
 -/
 import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Monoidal.OfChosenFiniteProducts.Basic
-import Mathlib.CategoryTheory.Monoidal.OfHasFiniteProducts
 import Mathlib.CategoryTheory.Types
 import Mathlib.CategoryTheory.Limits.Types
 import Mathlib.CategoryTheory.Monoidal.Category
+import Mathlib.CategoryTheory.Monoidal.Types.Basic
 
 /-!
 # Distributors
@@ -37,11 +37,11 @@ variable (A B C D: Cat)
 abbrev Dist := Dᵒᵖ × C ⥤ Type
 
 
-
-def Prodprod : Type × Type ⥤ Type  :=sorry
+def Prodprod : Type × Type ⥤ Type  := MonoidalCategory.tensor Type
 
 def proasdd (P : Dist A B) (Q: Dist B C) : Cᵒᵖ × C ⥤ Dist A C  :=
-  let PtQ := Functor.prod P Q ⋙ Prodprod
+  let PtQ := Functor.prod P Q ⋙ MonoidalCategory.tensor Type
+  --let PtQ' := sorry
   sorry
 
 
