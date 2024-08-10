@@ -14,7 +14,8 @@ import Mathlib.CategoryTheory.Products.Associator
 import Mathlib.CategoryTheory.Products.Basic
 import Mathlib.CategoryTheory.Products.Bifunctor
 import Mathlib.CategoryTheory.Functor.Currying
-
+import Mathlib.CategoryTheory.Bicategory.Extension
+import Mathlib.CategoryTheory.PUnit
 /-!
 # Distributors
 
@@ -32,7 +33,7 @@ Distributors generalize functors like relations generalizes functions
 
 -/
 
-universe v v' v'' v''' u u' u'' u'''
+universe v v' v'' v''' u u' u'' u''' w
 namespace CategoryTheory
 set_option linter.longLine false
 
@@ -72,7 +73,15 @@ def proasdd (P : Dist A B) (Q: Dist B C) : Cᵒᵖ × C ⥤ Dist A C  :=
 
   let p := CategoryTheory.CategoryOfElements.π hom
 
-  let f := p ⋙ PtimesQ'
+  let f : hom.Elements ⥤ (↑C)ᵒᵖ × ↑A ⥤ Type := p ⋙ PtimesQ'
+  let a  := Cat.of hom.Elements
+  let c : Cat := Cat.of ( (↑C)ᵒᵖ × ↑A ⥤ Type)
+  let fasd : a ⟶ c := sorry
+
+  let asd   := Functor.star hom.Elements
+  let asda : Cat.of hom.Elements ⟶ Cat.of (Discrete (PUnit))  := asd
+
+  let comp := Bicategory.LeftExtension (Functor.star hom.Elements ) (sorry)
 
   sorry
 
