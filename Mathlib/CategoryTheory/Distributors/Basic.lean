@@ -37,23 +37,6 @@ variable (α β γ)
 
 abbrev Dist := Dᵒᵖ × C ⥤ Type
 
-namespace hide
-
-inductive Vector (α : Type u) : Nat → Type u
-  | nil  : Vector α 0
-  | cons : α → {n : Nat} → Vector α n → Vector α (n+1)
-  deriving Repr
-
-namespace Vector
-
-def map2 (f : α → β → γ) : {n : Nat} → Vector α n → Vector β n → Vector γ n
-  | 0,   nil,       nil       => nil
-  | n+1, cons a as, cons b bs => cons (f a b) (map2 f as bs)
-
-end Vector
-
-end hide
-
 
 def Prodprod : Type × Type ⥤ Type  := MonoidalCategory.tensor Type
 
