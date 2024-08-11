@@ -63,14 +63,13 @@ open CategoryTheory.Bifunctor
 
 
 def times (P : Dist A B) (Q: Dist C D) :  Dist (A × C) (B × D) :=
-  let a := Functor.prod P Q ⋙ MonoidalCategory.tensor Type
-  let f  : (B × D)ᵒᵖ  × (A × C)    ⥤ (Bᵒᵖ × Dᵒᵖ) × (A × C)  :=  sorry
-  let fg : (Bᵒᵖ × Dᵒᵖ) × (A × C)   ⥤  Bᵒᵖ × (Dᵒᵖ × (A × C))  := sorry
-  let fg :  Bᵒᵖ × (Dᵒᵖ × (A × C))  ⥤  Bᵒᵖ × ((Dᵒᵖ × A) × C) := sorry
-  let fg :  Bᵒᵖ × ((Dᵒᵖ × A) × C)  ⥤  Bᵒᵖ × (( A × Dᵒᵖ) × C) := sorry
-  let fg :  Bᵒᵖ × (( A × Dᵒᵖ) × C) ⥤  Bᵒᵖ × ( A × (Dᵒᵖ × C))  := sorry
-  let fg :  Bᵒᵖ × ( A × (Dᵒᵖ × C)) ⥤ (Bᵒᵖ × A) × Dᵒᵖ × C := sorry
-  sorry
+  let plug  : (B × D)ᵒᵖ  × (A × C) ⥤ (Bᵒᵖ × A) × Dᵒᵖ × C  :=
+    Functor.prod ((prodOpEquiv B).functor) (𝟭 _) ⋙ prod.associator _ _ _ ⋙
+    Functor.prod (𝟭 _)  (prod.inverseAssociator  _ _ _ ) ⋙
+    Functor.prod (𝟭 _) (Functor.prod (Prod.swap _ _) (𝟭 _) ) ⋙
+     Functor.prod (𝟭 _) (prod.associator _ _ _) ⋙
+    (prod.inverseAssociator  _ _ _ )
+  plug ⋙ Functor.prod P Q ⋙ MonoidalCategory.tensor Type
 
 def op (P : Dist A B) :  Dist Bᵒᵖ Aᵒᵖ := sorry
 
