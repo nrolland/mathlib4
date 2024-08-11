@@ -49,17 +49,18 @@ variable (F : D × C ⥤ Type)
 open MonoidalCategory
 open CategoryTheory.Bifunctor
 
--- def composition (P : Dist A B) (Q: Dist B C) :  Dist A C  :=
---   let PtimesQ : ((↑B)ᵒᵖ × ↑B) × ((↑C)ᵒᵖ × ↑A) ⥤ Type :=
---     prod.associator _ _ _ ⋙ Functor.prod (𝟭 _)  (prod.inverseAssociator  _ _ _ ) ⋙
---     Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ prod.inverseAssociator _ _ _  ⋙
---     Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ Functor.prod P Q ⋙ MonoidalCategory.tensor Type
---   let PtimesQ'  := curryObj PtimesQ
---   let Bhom : (↑B)ᵒᵖ × ↑B ⥤ Type v' := CategoryTheory.Functor.hom B
--- noncomputable example := Functor.leftKanExtension oneL oneX
--- noncomputable example := Functor.pointwiseLeftKanExtension oneL oneX
---   let comp := Functor.leftKanExtension (Functor.star Bhom.Elements) (CategoryOfElements.π Bhom ⋙ PtimesQ')
---   comp.obj (⟨PUnit.unit⟩)
+def composition (P : Dist A B) (Q: Dist B C) :  Dist A C  :=
+  let PtimesQ : ((↑B)ᵒᵖ × ↑B) × ((↑C)ᵒᵖ × ↑A) ⥤ Type :=
+    prod.associator _ _ _ ⋙ Functor.prod (𝟭 _)  (prod.inverseAssociator  _ _ _ ) ⋙
+    Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ prod.inverseAssociator _ _ _  ⋙
+    Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ Functor.prod P Q ⋙ MonoidalCategory.tensor Type
+  let PtimesQ'  := curryObj PtimesQ
+  let Bhom : (↑B)ᵒᵖ × ↑B ⥤ Type v' := CategoryTheory.Functor.hom B
+  -- noncomputable example := Functor.leftKanExtension oneL oneX
+  -- noncomputable example := Functor.pointwiseLeftKanExtension oneL oneX
+  -- let comp := Functor.leftKanExtension (Functor.star Bhom.Elements) (CategoryOfElements.π Bhom ⋙ PtimesQ')
+  -- comp.obj (⟨PUnit.unit⟩)
+  sorry
 
 
 def times (P : Dist A B) (Q: Dist C D) :  Dist (A × C) (B × D) :=
@@ -71,7 +72,10 @@ def times (P : Dist A B) (Q: Dist C D) :  Dist (A × C) (B × D) :=
     (prod.inverseAssociator  _ _ _ )
   plug ⋙ Functor.prod P Q ⋙ MonoidalCategory.tensor Type
 
-def op (P : Dist A B) :  Dist Bᵒᵖ Aᵒᵖ := sorry
+def op (P : Dist A B) :  Dist Bᵒᵖ Aᵒᵖ :=
+  let plug  : (Aᵒᵖ)ᵒᵖ  × Bᵒᵖ ⥤ Bᵒᵖ × A := Functor.prod (unopUnop _) (𝟭 _) ⋙ Prod.swap _ _
+  plug ⋙ P
+
 
 
 -- a la main avec equivalence ?
