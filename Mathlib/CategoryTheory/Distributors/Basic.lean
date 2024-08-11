@@ -14,8 +14,10 @@ import Mathlib.CategoryTheory.Products.Associator
 import Mathlib.CategoryTheory.Products.Basic
 import Mathlib.CategoryTheory.Products.Bifunctor
 import Mathlib.CategoryTheory.Functor.Currying
-import Mathlib.CategoryTheory.Bicategory.Extension
+import Mathlib.CategoryTheory.Functor.KanExtension.Basic
 import Mathlib.CategoryTheory.PUnit
+import Mathlib.CategoryTheory.Functor.KanExtension.Pointwise
+
 /-!
 # Distributors
 
@@ -37,60 +39,50 @@ universe v v' v'' v''' u u' u'' u''' w
 namespace CategoryTheory
 set_option linter.longLine false
 
-variable (A: Cat.{v,u}) (B: Cat.{v',u'}) (C: Cat.{v'',u''}) (D: Cat.{v''',u'''})
-variable (α β γ)
+variable (A B C D : Type*) [Category A] [Category B] [Category C] [Category D]
 
 abbrev Dist := Dᵒᵖ × C ⥤ Type
 
 variable (P : Dist A B)
 variable (F : D × C ⥤ Type)
 
-
 open MonoidalCategory
 open CategoryTheory.Bifunctor
 
-def Prodprod : Type × Type ⥤ Type  := tensor Type
--- CategoryTheory.Bifunctor.map_id_comp (F : C × D ⥤ E) (W : C) (f : X ⟶ Y) (g : Y ⟶ Z) : F.map (𝟙 W, f ≫ g) = F.map (𝟙 W, f) ≫ F.map (𝟙 W, g)
+-- def composition (P : Dist A B) (Q: Dist B C) :  Dist A C  :=
+--   let PtimesQ : ((↑B)ᵒᵖ × ↑B) × ((↑C)ᵒᵖ × ↑A) ⥤ Type :=
+--     prod.associator _ _ _ ⋙ Functor.prod (𝟭 _)  (prod.inverseAssociator  _ _ _ ) ⋙
+--     Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ prod.inverseAssociator _ _ _  ⋙
+--     Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ Functor.prod P Q ⋙ MonoidalCategory.tensor Type
+--   let PtimesQ'  := curryObj PtimesQ
+--   let Bhom : (↑B)ᵒᵖ × ↑B ⥤ Type v' := CategoryTheory.Functor.hom B
+-- noncomputable example := Functor.leftKanExtension oneL oneX
+-- noncomputable example := Functor.pointwiseLeftKanExtension oneL oneX
+--   let comp := Functor.leftKanExtension (Functor.star Bhom.Elements) (CategoryOfElements.π Bhom ⋙ PtimesQ')
+--   comp.obj (⟨PUnit.unit⟩)
 
-def t : B × Cᵒᵖ × A ⥤ (B × Cᵒᵖ) × A := (prod.inverseAssociator  B Cᵒᵖ A)
 
-def tt :  Bᵒᵖ  × (B × (Cᵒᵖ × A)) ⥤  Bᵒᵖ × ((B × Cᵒᵖ) × A)  := Functor.prod (𝟭 Bᵒᵖ) (t A B C )
-
-
-def ttas : 𝟭 C = 𝟙 C := rfl
-
-def O.{v₂, v₃, v₄, u₂, u₃, u₄} {C : Type u₂} [Category.{v₂, u₂} C] {D : Type u₃} [Category.{v₃, u₃} D]
-  {E : Type u₄} [Category.{v₄, u₄} E] (F : C × D ⥤ E) := curryObj F
-
-def proasdd (P : Dist A B) (Q: Dist B C) : Cᵒᵖ × C ⥤ Dist A C  :=
-  let PtimesQ : ((↑B)ᵒᵖ × ↑B) × ((↑C)ᵒᵖ × ↑A) ⥤ Type :=
-    prod.associator _ _ _ ⋙ Functor.prod (𝟭 _)  (prod.inverseAssociator  _ _ _ ) ⋙
-    Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ prod.inverseAssociator _ _ _  ⋙
-    Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ Functor.prod P Q ⋙ MonoidalCategory.tensor Type
-  let PtimesQ'  := curryObj PtimesQ
-
-  let hom : (↑B)ᵒᵖ × ↑B ⥤ Type v' := CategoryTheory.Functor.hom B
-
-  let p := CategoryTheory.CategoryOfElements.π hom
-
-  let f : hom.Elements ⥤ (↑C)ᵒᵖ × ↑A ⥤ Type := p ⋙ PtimesQ'
-  let a  := Cat.of hom.Elements
-  let c : Cat := Cat.of ( (↑C)ᵒᵖ × ↑A ⥤ Type)
-  let fasd : a ⟶ c := sorry
-
-  let asd   := Functor.star hom.Elements
-  let asda : Cat.of hom.Elements ⟶ Cat.of (Discrete (PUnit))  := asd
-
-  let comp := Bicategory.LeftExtension (Functor.star hom.Elements ) (sorry)
-
+def times (P : Dist A B) (Q: Dist C D) :  Dist (A × C) (B × D) :=
+  let a := Functor.prod P Q ⋙ MonoidalCategory.tensor Type
+  let f  : (B × D)ᵒᵖ  × (A × C)    ⥤ (Bᵒᵖ × Dᵒᵖ) × (A × C)  :=  sorry
+  let fg : (Bᵒᵖ × Dᵒᵖ) × (A × C)   ⥤  Bᵒᵖ × (Dᵒᵖ × (A × C))  := sorry
+  let fg :  Bᵒᵖ × (Dᵒᵖ × (A × C))  ⥤  Bᵒᵖ × ((Dᵒᵖ × A) × C) := sorry
+  let fg :  Bᵒᵖ × ((Dᵒᵖ × A) × C)  ⥤  Bᵒᵖ × (( A × Dᵒᵖ) × C) := sorry
+  let fg :  Bᵒᵖ × (( A × Dᵒᵖ) × C) ⥤  Bᵒᵖ × ( A × (Dᵒᵖ × C))  := sorry
+  let fg :  Bᵒᵖ × ( A × (Dᵒᵖ × C)) ⥤ (Bᵒᵖ × A) × Dᵒᵖ × C := sorry
   sorry
 
+def op (P : Dist A B) :  Dist Bᵒᵖ Aᵒᵖ := sorry
 
 
-
-def comp (P : Dist A B) (Q: Dist B C) : Dist A C  := sorry
-
-
+-- a la main avec equivalence ?
+-- pour object, pour map, etc..
+def comp (P : Dist A B) (Q: Dist B C) : Dist A C  :=
+  let Bhom : (↑B)ᵒᵖ × ↑B ⥤ Type v' := CategoryTheory.Functor.hom B
+  {
+    obj := sorry
+    map := sorry
+  }
 
 
 
