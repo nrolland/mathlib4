@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Monoidal.OfChosenFiniteProducts.Basic
 import Mathlib.CategoryTheory.Types
 import Mathlib.CategoryTheory.Elements
 import Mathlib.CategoryTheory.Limits.Types
+import Mathlib.CategoryTheory.Limits.Presheaf
 import Mathlib.CategoryTheory.Monoidal.Category
 import Mathlib.CategoryTheory.Monoidal.Types.Basic
 import Mathlib.CategoryTheory.Products.Associator
@@ -17,6 +18,7 @@ import Mathlib.CategoryTheory.Functor.Currying
 import Mathlib.CategoryTheory.Functor.KanExtension.Basic
 import Mathlib.CategoryTheory.PUnit
 import Mathlib.CategoryTheory.Functor.KanExtension.Pointwise
+import Mathlib.CategoryTheory.Bicategory.Basic
 
 /-!
 # Distributors
@@ -35,11 +37,18 @@ Distributors generalize functors like relations generalizes functions
 
 -/
 
-universe v v' v'' v''' u u' u'' u''' w
+
+universe v v₁ v₂ v₃ v₄ v₅ u u₁ u₂ u₃ u₄ u₅
+
 namespace CategoryTheory
 set_option linter.longLine false
 
-variable (A B C D : Type*) [Category A] [Category B] [Category C] [Category D]
+
+variable (X : Type u ) [Category.{v} X]
+variable (A : Type u₁ ) [Category.{u₁+1} A]
+variable {B : Type u₂ } [Category.{u₂+1} B]
+variable (C : Type u₃ ) [Category.{u₃+1} C]
+variable (D : Type u₄ ) [Category.{v₄} D]
 
 abbrev Dist := Dᵒᵖ × C ⥤ Type
 
@@ -48,21 +57,17 @@ variable (F : D × C ⥤ Type)
 
 open MonoidalCategory
 open CategoryTheory.Bifunctor
-
-def composition (P : Dist A B) (Q: Dist B C) :  Dist A C  :=
-  let PtimesQ : ((↑B)ᵒᵖ × ↑B) × ((↑C)ᵒᵖ × ↑A) ⥤ Type :=
-    prod.associator _ _ _ ⋙ Functor.prod (𝟭 _)  (prod.inverseAssociator  _ _ _ ) ⋙
-    Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ prod.inverseAssociator _ _ _  ⋙
-    Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ Functor.prod P Q ⋙ MonoidalCategory.tensor Type
-  let PtimesQ'  := curryObj PtimesQ
-  let Bhom : (↑B)ᵒᵖ × ↑B ⥤ Type v' := CategoryTheory.Functor.hom B
-  -- noncomputable example := Functor.leftKanExtension oneL oneX
-  -- noncomputable example := Functor.pointwiseLeftKanExtension oneL oneX
-  -- let comp := Functor.leftKanExtension (Functor.star Bhom.Elements) (CategoryOfElements.π Bhom ⋙ PtimesQ')
-  -- comp.obj (⟨PUnit.unit⟩)
-  sorry
+open Limits
 
 
+
+
+def mycolimit (F : X ⥤ Type u) : Type u := sorry
+
+
+
+
+-------
 def times (P : Dist A B) (Q: Dist C D) :  Dist (A × C) (B × D) :=
   let plug  : (B × D)ᵒᵖ  × (A × C) ⥤ (Bᵒᵖ × A) × Dᵒᵖ × C  :=
     Functor.prod ((prodOpEquiv B).functor) (𝟭 _) ⋙ prod.associator _ _ _ ⋙
@@ -76,16 +81,31 @@ def op (P : Dist A B) :  Dist Bᵒᵖ Aᵒᵖ :=
   let plug  : (Aᵒᵖ)ᵒᵖ  × Bᵒᵖ ⥤ Bᵒᵖ × A := Functor.prod (unopUnop _) (𝟭 _) ⋙ Prod.swap _ _
   plug ⋙ P
 
+def extend (F : Bᵒᵖ × B ⥤ Type (u₂+1)) : (Functor.hom B).Elements ⥤ Type (u₂+1)  :=
+  CategoryOfElements.π (Functor.hom B) ⋙ F
+
+noncomputable def coendl : (Bᵒᵖ × B ⥤ Type (u₂+1)) ⥤ (Type (u₂+1)) where
+  obj (f : Bᵒᵖ × B ⥤ Type (u₂ + 1)) := Limits.colimit (extend f)
+  map {f g} (n : f ⟶ g) :=
+      (colimit.isColimit (extend f)).desc
+        ((Cocones.precompose (whiskerLeft (CategoryOfElements.π (Functor.hom B)) n)).obj
+         (colimit.cocone (extend g)))
+  map_id := sorry
+  map_comp := sorry
 
 
--- a la main avec equivalence ?
--- pour object, pour map, etc..
 def comp (P : Dist A B) (Q: Dist B C) : Dist A C  :=
-  let Bhom : (↑B)ᵒᵖ × ↑B ⥤ Type v' := CategoryTheory.Functor.hom B
-  {
-    obj := sorry
-    map := sorry
-  }
+  let PtimesQ : ((↑B)ᵒᵖ × ↑B) × (Cᵒᵖ × A) ⥤ Type :=
+    prod.associator _ _ _ ⋙ Functor.prod (𝟭 _)  (prod.inverseAssociator  _ _ _ ) ⋙
+    Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ prod.inverseAssociator _ _ _  ⋙
+    Functor.prod (𝟭 _) (Prod.swap _ _) ⋙ Functor.prod P Q ⋙ MonoidalCategory.tensor Type
+
+  let mynicefunctor : (Functor.hom B).Elements ⥤ Cᵒᵖ × A ⥤ Type := CategoryOfElements.π (CategoryTheory.Functor.hom B) ⋙ curryObj PtimesQ
+  let myotherfunctor : (Functor.hom B).Elements ⥤ Cᵒᵖ × A ⥤ Type := CategoryOfElements.π (CategoryTheory.Functor.hom B) ⋙ curryObj PtimesQ
+
+  let ok1 := Limits.colimit (CategoryOfElements.π (Functor.hom B) ⋙ Functor.hom B)
+  let sad := Limits.colimit (CategoryOfElements.π (Functor.hom B) ⋙ Functor.hom B)
+  sorry
 
 
 
