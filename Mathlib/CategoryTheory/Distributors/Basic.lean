@@ -20,6 +20,7 @@ import Mathlib.CategoryTheory.Functor.KanExtension.Basic
 import Mathlib.CategoryTheory.PUnit
 import Mathlib.CategoryTheory.Functor.KanExtension.Pointwise
 import Mathlib.CategoryTheory.Bicategory.Basic
+import Mathlib.CategoryTheory.Comma.Basic
 
 /-!
 # Distributors
@@ -45,25 +46,46 @@ namespace CategoryTheory
 set_option linter.longLine false
 
 
-variable (X : Type u ) [Category.{v} X]
-variable (A : Type u₁ ) [Category.{u₁+1} A]
-variable {B : Type u₂ } [Category.{u₂+1} B]
-variable (C : Type u₃ ) [Category.{u₃+1} C]
+ /-- The chosen terminal object in `Cat`. -/
+ abbrev chosenTerminal : Cat := Cat.of (ULift (ULiftHom (Discrete Unit)))
+
+ example : chosenTerminal := ⟨⟨⟨⟩⟩⟩
+
+
+variable (X : Type u  ) [Category.{v}  X]
+variable (A : Type u₁ ) [Category.{v₁} A]
+variable {B : Type u₂ } [Category.{v₂} B]
+variable (C : Type u₃ ) [Category.{v₃} C]
 variable (D : Type u₄ ) [Category.{v₄} D]
 
 abbrev Dist := Dᵒᵖ × C ⥤ Type
 
 variable (P : Dist A B)
-variable (F : D × C ⥤ Type)
 
 open MonoidalCategory
 open CategoryTheory.Bifunctor
 open Limits
 
 
+def Functor.ElementsFunctor :  (C ⥤ Type v) ⥤ Cat where
+  obj F := Cat.of F.Elements
+  map {F G} n := {
+    obj := fun ⟨X,x⟩ ↦  ⟨X, n.app X x ⟩
+    map := fun ⟨X, x⟩ {Y} ⟨f,_⟩ ↦
+    match Y with | ⟨Y, y⟩ => ⟨f, by have := congrFun (n.naturality f) x;aesop_cat⟩
+  }
+
+def mycolimit : (X ⥤ Type u) ⥤  Type u := Functor.ElementsFunctor X ⋙ Cat.connectedComponents
+
+def myprecomp  : (Bᵒᵖ × B ⥤ Type u) ⥤  (Functor.hom B).Elements ⥤ Type u :=
+  (CategoryTheory.whiskeringLeft _ _ _ ).obj (CategoryOfElements.π (Functor.hom B))
+
+def mycoend : (Bᵒᵖ × B ⥤ Type u) ⥤  Type u :=
+  let one := myprecomp
+  let other := mycolimit ((Functor.hom B).Elements)
+  Functor.comp  myprecomp other -- fonctoriellement, prend un P, precompose par hom B, prend la colim
 
 
-def mycolimit : (X ⥤ Type u) ⥤  Type u := sorry
 
 
 -------

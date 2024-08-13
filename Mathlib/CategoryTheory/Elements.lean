@@ -44,11 +44,6 @@ is a pair `(X : C, x : F.obj X)`.
 def Functor.Elements (F : C ⥤ Type w) :=
   Σc : C, F.obj c
 
-def ElementsFunctor :  (C ⥤ Type w) ⥤ Type (max u w) where
-  obj := sorry
-  map := sorry
-
-
 /--   Constructor for the type `F.Elements` when `F` is a functor to types. -/
 abbrev Functor.elementsMk (F : C ⥤ Type w) (X : C) (x : F.obj X) : F.Elements := ⟨X, x⟩
 
