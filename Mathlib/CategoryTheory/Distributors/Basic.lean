@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolas Rolland
 -/
 import Mathlib.CategoryTheory.Category.Cat
+import Mathlib.CategoryTheory.Category.Cat.Adjunction
 import Mathlib.CategoryTheory.Monoidal.OfChosenFiniteProducts.Basic
 import Mathlib.CategoryTheory.Types
 import Mathlib.CategoryTheory.Elements
@@ -62,9 +63,7 @@ open Limits
 
 
 
-def mycolimit (F : X ⥤ Type u) : Type u := sorry
-
-
+def mycolimit : (X ⥤ Type u) ⥤  Type u := sorry
 
 
 -------
