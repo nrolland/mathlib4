@@ -21,6 +21,7 @@ import Mathlib.CategoryTheory.PUnit
 import Mathlib.CategoryTheory.Functor.KanExtension.Pointwise
 import Mathlib.CategoryTheory.Bicategory.Basic
 import Mathlib.CategoryTheory.Comma.Basic
+import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 
 /-!
 # Distributors
@@ -43,25 +44,40 @@ section mysection_for_coend
 
 open CategoryTheory
 
-universe v₂ u₂ u
+universe v₂ u₂ u vm um
 variable {B : Type u₂ } [Category.{v₂} B]
+variable {M : Type vm } [Category.{um} M]
+variable (F : (Bᵒᵖ×B) ⥤ M)
 
-def Functor.ElementsFunctor  : (B ⥤ Type u) ⥤ Cat.{v₂, max u₂ u} where
-  obj F := Cat.of.{v₂, max u₂ u} (F.Elements :  Type (max u₂ u) )
-  map {F G} n := {
-    obj := fun ⟨X,x⟩ ↦  ⟨X, n.app X x ⟩
-    map := fun ⟨X, x⟩ {Y} ⟨f,_⟩ ↦
-    match Y with | ⟨Y, y⟩ => ⟨f, by have := congrFun (n.naturality f) x;aesop_cat⟩
-  }
 
-def mycolimit  : (B ⥤ Type u) ⥤ Type (max u₂ u)
-  := @Functor.ElementsFunctor B _ ⋙ Cat.connectedComponents
+structure Wedge  where
+  pt : M
+  leg (b:B) : pt ⟶ F.obj (Opposite.op b,b)
+  wedgeCondition : ∀ ⦃c c' : B⦄ (f : c ⟶ c'),
+    (leg c ≫ F.map ((𝟙 c).op,f) : pt ⟶ F.obj (Opposite.op c, c'))
+     = (leg c' ≫ F.map (f.op, 𝟙 c')  : pt ⟶ F.obj (Opposite.op c, c'))  := by aesop_cat
 
-def mycoend : (Bᵒᵖ × B ⥤ Type u) ⥤  Type (max u u₂ v₂) :=
-  (CategoryTheory.whiskeringLeft _ _ _ ).obj (CategoryOfElements.π (Functor.hom B)) ⋙ mycolimit
+structure WedgeMorphism (x y : Wedge F) where
+  Hom : x.pt ⟶ y.pt
+  wedgeCondition : ∀ (c : B), Hom ≫ y.leg c = x.leg c  := by aesop_cat
 
-def mycoend'  (F : Bᵒᵖ × B ⥤ Type u) :  Type _  := sorry
+attribute [simp] WedgeMorphism.wedgeCondition
 
+-- The category of Wedges
+instance  (F : (Bᵒᵖ×B) ⥤ M) : Category (Wedge F) where
+  Hom := fun x y => WedgeMorphism _ x y
+  id := fun x => {Hom := 𝟙 x.pt}
+  comp := fun f g => { Hom := f.Hom ≫ g.Hom }
+
+def myCoendType  (F : Bᵒᵖ × B ⥤ Type u) :  Type _  := Σb : B, F.obj (Opposite.op b,b)
+
+def myCoend  (F : Bᵒᵖ × B ⥤ Type u)  : Wedge F  where
+  pt := myCoendType F
+  leg := sorry
+  wedgeCondition := sorry
+
+
+--instance  (F : Bᵒᵖ × B ⥤ Type u)  : IsTerminal (myCoEnd F : _ ) where := sorry
 
 end mysection_for_coend
 
