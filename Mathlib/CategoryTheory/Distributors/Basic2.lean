@@ -63,9 +63,10 @@ def relation (F : B ⥤ Type u) (e : total F)  (e' : total F) : Prop :=
   | ⟨a,x⟩, ⟨b,y⟩ => ∃ (f : a ⟶ b), y = F.map f x
 
 
+
 def myCoend (F : Bᵒᵖ × B ⥤ Type _) : CoWedge F  where
   pt := total F
-  leg b x := ⟨b,x⟩
+  leg b x := ⟨(Opposite.op b, b),x⟩
   cowedgeCondition b b' f  := by
     let one : F.obj (Opposite.op b', b) ⟶ total F := F.map (f.op, 𝟙 b) ≫ (fun x => Sigma.mk b x)
     let two : F.obj (Opposite.op b', b) ⟶ total F := F.map ((𝟙 b').op, f) ≫ (fun x => Sigma.mk b' x)
