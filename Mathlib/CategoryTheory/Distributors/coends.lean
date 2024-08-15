@@ -33,12 +33,12 @@ We also formalise theorems about (co)ends roughly corresponding to chapters 1-2 
 abbrev TwistedArrow C [Category.{v} C] := (Functor.hom.{v, u} C).Elements
 -- The induced functor Fbar : Tw(C) → Cᵒᵖ × C → D corresponding to F:Cᵒᵖ × C → D
 @[simp] def bar_fun : (TwistedArrow C) ⥤ D := (CategoryOfElements.π (Functor.hom C)) ⋙ F
-def endCone [Limits.HasLimit (bar_fun F)] : Type ((max m u v)) := Limits.LimitCone (bar_fun F)
+def endCone [Limits.HasLimit (bar_fun F)] : Type (max (max m u v) m) := Limits.LimitCone (bar_fun F)
 
 -- **ends via wedges**
 def twisted_diagonal (F : (Cᵒᵖ×C) ⥤ D) : C → D := fun c ↦ F.obj (Opposite.op c,c)
 
-structure Wedge where
+structure Wedge (F : (Cᵒᵖ×C) ⥤ D) where
   pt : D
   leg (c:C) : pt ⟶ twisted_diagonal F c
   wedgeCondition : ∀ ⦃c c' : C⦄ (f : c ⟶ c'),
@@ -126,24 +126,24 @@ def functor_cone_to_wedge (F : (Cᵒᵖ×C) ⥤ D) : Functor (Cone (bar_fun F)) 
       aesop_cat
   }
 
---  Function on morphisms
-@[simp] def wedgeMorphism_as_coneMorphism {c : Wedge F} {d : Wedge F} (f : WedgeMorphism c d) : ConeMorphism (wedge_as_cone c) (wedge_as_cone d) where
-  Hom := f.Hom
-  w := by
-    intro ⟨(d,d'),f⟩
-    aesop_cat_nonterminal
-    have wedgeCon := f_1.wedgeCondition d.unop
-    rw [← wedgeCon, Category.assoc]
+-- --  Function on morphisms
+-- @[simp] def wedgeMorphism_as_coneMorphism {c : Wedge F} {d : Wedge F} (f : WedgeMorphism c d) : ConeMorphism (wedge_as_cone c) (wedge_as_cone d) where
+--   Hom := f.Hom
+--   w := by
+--     intro ⟨(d,d'),f⟩
+--     aesop_cat_nonterminal
+--     have wedgeCon := f_1.wedgeCondition d.unop
+--     rw [← wedgeCon, Category.assoc]
 
--- Functor
-@[simp] def functor_wedge_to_cone (F : (Cᵒᵖ×C) ⥤ D) : Functor (Wedge F) (Cone (bar_fun F)) where
-  obj x := wedge_as_cone x
-  map f := wedgeMorphism_as_coneMorphism f
+-- -- Functor
+-- @[simp] def functor_wedge_to_cone (F : (Cᵒᵖ×C) ⥤ D) : Functor (Wedge F) (Cone (bar_fun F)) where
+--   obj x := wedge_as_cone x
+--   map f := wedgeMorphism_as_coneMorphism f
 
--- Equivalence of categories of Wd(F) and Cone(F bar)
-def equivalence_cone_Fbar_WdF : Equivalence (Wedge F) (Cone (bar_fun F)) where
-  functor := functor_wedge_to_cone F
-  inverse := functor_cone_to_wedge F
-  unitIso := sorry
-  counitIso := sorry
-  functor_unitIso_comp := sorry
+-- -- Equivalence of categories of Wd(F) and Cone(F bar)
+-- def equivalence_cone_Fbar_WdF : Equivalence (Wedge F) (Cone (bar_fun F)) where
+--   functor := functor_wedge_to_cone F
+--   inverse := functor_cone_to_wedge F
+--   unitIso := sorry
+--   counitIso := sorry
+--   functor_unitIso_comp := sorry

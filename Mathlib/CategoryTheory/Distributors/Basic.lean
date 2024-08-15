@@ -3,24 +3,11 @@ Copyright (c) 2024 Nicolas Rolland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolas Rolland
 -/
-import Mathlib.CategoryTheory.Category.Cat
 import Mathlib.CategoryTheory.Category.Cat.Adjunction
-import Mathlib.CategoryTheory.Monoidal.OfChosenFiniteProducts.Basic
-import Mathlib.CategoryTheory.Types
 import Mathlib.CategoryTheory.Elements
-import Mathlib.CategoryTheory.Limits.Types
-import Mathlib.CategoryTheory.Limits.Presheaf
-import Mathlib.CategoryTheory.Monoidal.Category
+import Mathlib.CategoryTheory.Functor.Currying
 import Mathlib.CategoryTheory.Monoidal.Types.Basic
 import Mathlib.CategoryTheory.Products.Associator
-import Mathlib.CategoryTheory.Products.Basic
-import Mathlib.CategoryTheory.Products.Bifunctor
-import Mathlib.CategoryTheory.Functor.Currying
-import Mathlib.CategoryTheory.Functor.KanExtension.Basic
-import Mathlib.CategoryTheory.PUnit
-import Mathlib.CategoryTheory.Functor.KanExtension.Pointwise
-import Mathlib.CategoryTheory.Bicategory.Basic
-import Mathlib.CategoryTheory.Comma.Basic
 
 /-!
 # Distributors
@@ -60,7 +47,6 @@ def mycolimit  : (B ⥤ Type u) ⥤ Type (max u₂ u)
 def mycoend : (Bᵒᵖ × B ⥤ Type u) ⥤  Type (max u u₂ v₂) :=
   (CategoryTheory.whiskeringLeft _ _ _ ).obj (CategoryOfElements.π (Functor.hom B)) ⋙ mycolimit
 
-def mycoend'  (F : Bᵒᵖ × B ⥤ Type u) :  Type _  := sorry
 
 
 end mysection_for_coend
@@ -69,7 +55,6 @@ namespace CategoryTheory
 set_option linter.longLine false
 
 open MonoidalCategory
-open CategoryTheory.Bifunctor
 open Limits
 
 abbrev Dist.{u, v₂, u₂, v₁, u₁} (A : Type u₁) [Category.{v₁} A] (B : Type u₂ ) [Category.{v₂} B] := Bᵒᵖ × A ⥤ Type u
@@ -100,16 +85,7 @@ def comp (P : Dist.{u} A B) (Q: Dist.{u} B C) : Dist.{max u u₂ v₂} A C  :=
   let pq : Cᵒᵖ × A ⥤ Bᵒᵖ × B ⥤ Type u := curryObj (plug ⋙ times P Q)
 
   let that_increase_universe : ((Cᵒᵖ × A) ⥤ (Bᵒᵖ × B ⥤ Type u)) ⥤ ((Cᵒᵖ × A) ⥤  Type (max u u₂ v₂)) := (CategoryTheory.whiskeringRight _ _ _ ).obj mycoend
-
   that_increase_universe.obj pq
-
-
--- CategoryTheory.Functor.{v₁, v₂, u₁, u₂} (C : Type u₁) [Category.{v₁, u₁} C] (D : Type u₂) [Category.{v₂, u₂} D] :  Type (max v₁ v₂ u₁ u₂)
-
-def asdascomp (F : A  ⥤ B) (G : B ⥤ C) : A ⥤ C where
-  obj X := G.obj (F.obj X)
-  map f := G.map (F.map f)
-  map_comp := by intros; dsimp; rw [F.map_comp, G.map_comp]
 
 
 end CategoryTheory
