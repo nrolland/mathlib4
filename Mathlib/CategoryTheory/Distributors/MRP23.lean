@@ -8,25 +8,6 @@ variable {B : Type u₂ } [Category.{v₂} B]
 variable {M : Type vm } [Category.{um} M]
 variable (F : (Bᵒᵖ×B) ⥤ M)
 
-structure Wedge : Type (max (max um u₂) vm) where
-  pt : M
-  leg (c:B) : pt ⟶ F.obj (Opposite.op c,c)
-  wedgeCondition : ∀ ⦃c c' : B⦄ (f : c ⟶ c'),
-    (leg c ≫ F.map ((𝟙 c).op,f) : pt ⟶ F.obj (Opposite.op c, c'))
-     = (leg c' ≫ F.map (f.op, 𝟙 c')  : pt ⟶ F.obj (Opposite.op c, c')) := by aesop_cat
-
-structure WedgeMorphism (x y : Wedge F) where
-  Hom : x.pt ⟶ y.pt
-  wedgeCondition : ∀ (c : B),
-    Hom ≫ y.leg c = x.leg c := by aesop_cat
-
-attribute [simp] WedgeMorphism.wedgeCondition
-
-instance : Category (Wedge F) where
-  Hom := fun x y => WedgeMorphism _ x y
-  id := fun x => {  Hom := 𝟙 x.pt }
-  comp := fun f g =>  { Hom := f.Hom ≫ g.Hom}
-
 structure CoWedge : Type (max (max um u₂) vm) where
   pt : M
   leg (b:B) : F.obj (Opposite.op b,b) ⟶ pt
@@ -51,7 +32,20 @@ def NatTrans.mapElements {F G : B ⥤ Type _} (φ : F ⟶ G) : F.Elements ⥤ G.
   obj := fun ⟨X, x⟩ ↦ ⟨_, φ.app X x⟩
   map {p q} := fun ⟨f,h⟩ ↦ ⟨f, by have hb := congrFun (φ.naturality f) p.2; aesop_cat⟩
 
-def myCoendPt : (Bᵒᵖ × B ⥤  Type (max u u₂)) ⥤  Type (max u₂ u) where
+def Functor.ElementsFunctor : (B ⥤ Type u) ⥤ Cat.{v₂, max u₂ u} where
+  obj F := Cat.of.{v₂, max u₂ u} (F.Elements :  Type (max u₂ u) )
+  map {F G} n := {
+    obj := fun ⟨X,x⟩ ↦  ⟨X, n.app X x ⟩
+    map := fun ⟨X, x⟩ {Y} ⟨f,_⟩ ↦
+    match Y with | ⟨Y, y⟩ => ⟨f, by have := congrFun (n.naturality f) x;aesop_cat⟩
+  }
+
+def myColimitPt : (B ⥤ Type u) ⥤ Type (max u₂ u)
+  := @Functor.ElementsFunctor B _ ⋙ Cat.connectedComponents
+
+----
+
+def myCoendPt : (Bᵒᵖ × B ⥤  Type u) ⥤  Type (max u u₂) where
   obj F := ConnectedComponents F.Elements
   map {f g} n :=
     let as :  Cat.of f.Elements ⟶ Cat.of  g.Elements := NatTrans.mapElements n
@@ -59,13 +53,19 @@ def myCoendPt : (Bᵒᵖ × B ⥤  Type (max u u₂)) ⥤  Type (max u₂ u) whe
   map_id f := funext fun xq ↦ by obtain ⟨x,rfl⟩ := Quotient.exists_rep xq; rfl
   map_comp {f g h } n m := funext fun xq ↦ by obtain ⟨x,rfl⟩ := Quotient.exists_rep xq; rfl
 
+def myOtherCoendPt : (Bᵒᵖ × B ⥤ Type u) ⥤  Type (max u u₂ v₂) :=
+  (CategoryTheory.whiskeringLeft _ _ _ ).obj (CategoryOfElements.π (Functor.hom B)) ⋙ myColimitPt
 
-def myCoendObj (F : Bᵒᵖ × B ⥤ Type (max u u₂)) : (CoWedge F : Type (max (u + 1) (u₂ + 1)))  where
-  pt := ConnectedComponents F.Elements
-  leg b x := Quotient.mk _ ⟨(Opposite.op b, b),x⟩
-  cowedgeCondition b b' f  := funext (fun x ↦
-    have z1 : @Zigzag (F.Elements) _  ⟨(Opposite.op b, b), F.map (f.op, 𝟙 b) x⟩ _  :=
-      Zigzag.of_inv ⟨(f.op, 𝟙 b),rfl⟩
-    have z2 : @Zigzag (F.Elements) _  ⟨(Opposite.op b', b), x⟩ _ :=
-      Zigzag.of_hom ⟨((𝟙 b').op, f),rfl⟩
-    Quotient.sound ((z1).trans z2))
+def MyType := ∃ u, Type u
+
+-- def they_might_be_equal  {B : Type u₂} [Category.{u₂, u₂} B] :
+--   @myCoendPt.{u₂, u₂, u} B _ = @myOtherCoendPt.{u₂, u₂, u} B _ :=  sorry
+
+-- def they_can't_be_equal  {B : Type u₂} [Category.{v₂, u₂} B] :
+--   @myCoendPt.{v₂, u₂, u} B _ = @myOtherCoendPt.{v₂, u₂, u} B _  := sorry
+-- -- type mismatch
+-- --   myOtherCoendPt
+-- -- has type
+-- --   (Bᵒᵖ × B ⥤ Type u) ⥤ Type (max u u₂ v₂) : Type (max (max u u₂) (max (max u u₂) v₂) (max (max (max (u + 1) u₂) u) v₂) (max (u + 1) (u₂ + 1)) (v₂ + 1))
+-- -- but is expected to have type
+-- --   (Bᵒᵖ × B ⥤ Type u) ⥤ Type (max u u₂) : Type (max (max u u₂) (max (max (max (u + 1) u₂) u) v₂) (u + 1) (u₂ + 1))L

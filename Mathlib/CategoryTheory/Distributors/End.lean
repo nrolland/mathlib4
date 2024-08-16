@@ -51,7 +51,7 @@ def NatTrans.mapElements {F G : B ⥤ Type _} (φ : F ⟶ G) : F.Elements ⥤ G.
   obj := fun ⟨X, x⟩ ↦ ⟨_, φ.app X x⟩
   map {p q} := fun ⟨f,h⟩ ↦ ⟨f, by have hb := congrFun (φ.naturality f) p.2; aesop_cat⟩
 
-def myCoendPt : (Bᵒᵖ × B ⥤  Type (max u u₂)) ⥤  Type (max u₂ u) where
+def myCoendPt : (Bᵒᵖ × B ⥤  Type u) ⥤  Type (max u₂ u) where
   obj F := ConnectedComponents F.Elements
   map {f g} n :=
     let as :  Cat.of f.Elements ⟶ Cat.of  g.Elements := NatTrans.mapElements n
@@ -69,3 +69,29 @@ def myCoendObj (F : Bᵒᵖ × B ⥤ Type (max u u₂)) : (CoWedge F : Type (max
     have z2 : @Zigzag (F.Elements) _  ⟨(Opposite.op b', b), x⟩ _ :=
       Zigzag.of_hom ⟨((𝟙 b').op, f),rfl⟩
     Quotient.sound ((z1).trans z2))
+
+
+
+
+section mysection_for_coend
+
+open CategoryTheory
+
+variable {B : Type u₂ } [Category.{v₂} B]
+
+def Functor.ElementsFunctor : (B ⥤ Type u) ⥤ Cat.{v₂, max u₂ u} where
+  obj F := Cat.of.{v₂, max u₂ u} (F.Elements :  Type (max u₂ u) )
+  map {F G} n := {
+    obj := fun ⟨X,x⟩ ↦  ⟨X, n.app X x ⟩
+    map := fun ⟨X, x⟩ {Y} ⟨f,_⟩ ↦
+    match Y with | ⟨Y, y⟩ => ⟨f, by have := congrFun (n.naturality f) x;aesop_cat⟩
+  }
+
+def myColimitPt : (B ⥤ Type u) ⥤ Type (max u₂ u)
+  := @Functor.ElementsFunctor B _ ⋙ Cat.connectedComponents
+
+def myCoendPt' : (Bᵒᵖ × B ⥤ Type u) ⥤  Type (max u u₂ v₂) :=
+  (CategoryTheory.whiskeringLeft _ _ _ ).obj (CategoryOfElements.π (Functor.hom B)) ⋙ myColimitPt
+
+
+end mysection_for_coend
