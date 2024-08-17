@@ -59,9 +59,9 @@ def myCoendPt : (Bᵒᵖ × B ⥤  Type u) ⥤  Type (max u₂ u) where
   map_id f := funext fun xq ↦ by obtain ⟨x,rfl⟩ := Quotient.exists_rep xq; rfl
   map_comp {f g h } n m := funext fun xq ↦ by obtain ⟨x,rfl⟩ := Quotient.exists_rep xq; rfl
 
-
+/-- Each nadir is a cowedge -/
 def myCoendObj (F : Bᵒᵖ × B ⥤ Type (max u u₂)) : (CoWedge F : Type (max (u + 1) (u₂ + 1)))  where
-  pt := ConnectedComponents F.Elements
+  pt := myCoendPt.obj F
   leg b x := Quotient.mk _ ⟨(Opposite.op b, b),x⟩
   cowedgeCondition b b' f  := funext (fun x ↦
     have z1 : @Zigzag (F.Elements) _  ⟨(Opposite.op b, b), F.map (f.op, 𝟙 b) x⟩ _  :=
@@ -70,10 +70,14 @@ def myCoendObj (F : Bᵒᵖ × B ⥤ Type (max u u₂)) : (CoWedge F : Type (max
       Zigzag.of_hom ⟨((𝟙 b').op, f),rfl⟩
     Quotient.sound ((z1).trans z2))
 
+-- missing : this cowedege is initial / a limit for  F . pi
+
+-- de la meme maniere que l'on generalise les fct, comment faire pour les foncteurs ?
+--def myCoend : (F : Bᵒᵖ × B ⥤ Type (max u u₂)) ⥤  (CoWedge F : Type (max (u + 1) (u₂ + 1)))  := sorry
 
 
 
-section mysection_for_coend
+section coend_with_colim
 
 open CategoryTheory
 
@@ -93,5 +97,7 @@ def myColimitPt : (B ⥤ Type u) ⥤ Type (max u₂ u)
 def myCoendPt' : (Bᵒᵖ × B ⥤ Type u) ⥤  Type (max u u₂ v₂) :=
   (CategoryTheory.whiskeringLeft _ _ _ ).obj (CategoryOfElements.π (Functor.hom B)) ⋙ myColimitPt
 
+-- missing : this cowedege is initial / a limit for  F . pi
 
-end mysection_for_coend
+
+end coend_with_colim
