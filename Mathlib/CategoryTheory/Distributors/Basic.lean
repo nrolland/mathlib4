@@ -9,7 +9,8 @@ import Mathlib.CategoryTheory.Functor.Currying
 import Mathlib.CategoryTheory.Functor.FullyFaithful
 import Mathlib.CategoryTheory.Monoidal.Types.Basic
 import Mathlib.CategoryTheory.Products.Associator
-import Mathlib.CategoryTheory.Distributors.Coend
+import Mathlib.CategoryTheory.Distributors.Coends
+import Mathlib.CategoryTheory.Distributors.Ends
 import Mathlib.CategoryTheory.Functor.Basic
 import Mathlib.CategoryTheory.EqToHom
 import Mathlib.Combinatorics.Quiver.Basic
@@ -48,28 +49,14 @@ def plugOne : (B × D)ᵒᵖ  × (A × C) ⥤ (Bᵒᵖ × A) × Dᵒᵖ × C  :=
 def plugTwo   : (Cᵒᵖ × A) × (Bᵒᵖ × B) ⥤  (B × C)ᵒᵖ × (A × B)  := (prod.inverseAssociator  _ _ _ ) ⋙ Functor.prod (Prod.swap _ _) (𝟭 _) ⋙ Functor.prod (prod.inverseAssociator _ _ _) (𝟭 _) ⋙ (prod.associator  _ _ _ ) ⋙ Functor.prod ((prodOpEquiv B).inverse) (𝟭 _)
 
 
-def prodFunctor : (A ⥤ B) × (C ⥤ D) ⥤ A × C ⥤ B × D where
-  obj FG := FG.1.prod FG.2
-  map nm :=  NatTrans.prod nm.1 nm.2
+-- def prodFunctor' : (A ⥤ B) ⥤  (C ⥤ D) ⥤ A × C ⥤ B × D := curry.obj prodFunctor
+-- def prodFunctor'' : (C ⥤ D) ⥤ (A ⥤ B) ⥤  A × C ⥤ B × D := curry.obj (Prod.swap _ _ ⋙ prodFunctor )
 
--- @[simps]
--- protected def op (F : C ⥤ D) : Cᵒᵖ ⥤ Dᵒᵖ where
---   obj X := op (F.obj (unop X))
---   map f := (F.map f.unop).op
+-- def phi_1 : (A ⥤ B) ⥤ ((Bᵒᵖ × A) ⥤ (Bᵒᵖ × B)) := prodFunctor'.obj (𝟭 Bᵒᵖ)
+-- def phi_2 : ((Bᵒᵖ × A) ⥤ (Bᵒᵖ × B)) ⥤ (Bᵒᵖ × A ⥤ Type _) := (whiskeringRight _ _ _ ).obj (Functor.hom B)
 
-
-def prodFunctor' : (A ⥤ B) ⥤  (C ⥤ D) ⥤ A × C ⥤ B × D := curry.obj prodFunctor
-def prodFunctor'' : (C ⥤ D) ⥤ (A ⥤ B) ⥤  A × C ⥤ B × D := curry.obj (Prod.swap _ _ ⋙ prodFunctor )
-
-def phi_1 : (A ⥤ B) ⥤ ((Bᵒᵖ × A) ⥤ (Bᵒᵖ × B)) := prodFunctor'.obj (𝟭 Bᵒᵖ)
-def phi_2 : ((Bᵒᵖ × A) ⥤ (Bᵒᵖ × B)) ⥤ (Bᵒᵖ × A ⥤ Type _) := (whiskeringRight _ _ _ ).obj (Functor.hom B)
-
-def _phi1  :  (Aᵒᵖ ⥤ Bᵒᵖ ) ⥤ ((Aᵒᵖ × B) ⥤ (Bᵒᵖ × B))  := prodFunctor''.obj (𝟭 B)
-
-
--- /-- `Vᵒᵖ` reverses the direction of all arrows of `V`. -/
--- instance opposite {V} [Quiver V] : Quiver Vᵒᵖ :=
---   ⟨fun a b => (unop b ⟶ unop a)ᵒᵖ⟩
+-- def _phi1  :  (Aᵒᵖ ⥤ Bᵒᵖ ) ⥤ ((Aᵒᵖ × B) ⥤ (Bᵒᵖ × B))  := prodFunctor''.obj (𝟭 B)
+-- def _phi2 : ((Aᵒᵖ × B) ⥤ (Bᵒᵖ × B)) ⥤ (Aᵒᵖ × B ⥤ Type _) := (whiskeringRight _ _ _ ).obj (Functor.hom B)
 
 def opFunctor  :  (A ⥤ B)ᵒᵖ ⥤ (Aᵒᵖ ⥤ Bᵒᵖ)  where
   obj f := Functor.op (Opposite.unop f)
@@ -78,25 +65,31 @@ def opFunctor  :  (A ⥤ B)ᵒᵖ ⥤ (Aᵒᵖ ⥤ Bᵒᵖ)  where
     naturality := fun _ _ uo => congrArg Quiver.Hom.op ((nop.unop.naturality uo.unop).symm)
   }
 
+/-- The cartesian product functor -/
+def prodFunctor : (A ⥤ B) × (C ⥤ D) ⥤ A × C ⥤ B × D where
+  obj FG := FG.1.prod FG.2
+  map nm :=  NatTrans.prod nm.1 nm.2
 
-def opFunctor  :  (A ⥤ B)ᵒᵖ ≌ (Aᵒᵖ ⥤ Bᵒᵖ)  where
-  obj f := Functor.op (Opposite.unop f)
-  map {fop gop : (A ⥤ B)ᵒᵖ} (nop : fop ⟶ gop) := {
-    app := fun ao =>  Opposite.op ((Opposite.unop nop).app (Opposite.unop ao))
-    naturality := fun _ _ uo => congrArg Quiver.Hom.op ((nop.unop.naturality uo.unop).symm)
-  }
-
-
---def _phi2  :  ((Aᵒᵖ × B) ⥤ (Bᵒᵖ × B)) ⥤  (Aᵒᵖ × B ⥤ Type _)  := (whiskeringRight _ _ _ ).obj (Functor.hom B)
-
+def asds : Nat → Nat  := ( · ) + ( · )
 --- embeddings
 
-def phi_ : (A ⥤ B) ⥤ ((Bᵒᵖ × A) ⥤ Type _) := prodFunctor'.obj (𝟭 Bᵒᵖ) ⋙ (whiskeringRight _ _ _ ).obj (Functor.hom B)
+--#eval asds 3
 
---- def whatIwant : (A ⥤ B) ⥤ ((Bᵒᵖ × A) ⥤ (Bᵒᵖ × B)) := prodFunctor ((𝟭 Bᵒᵖ), (·) )
---- def whatIwant' : (A ⥤ B) ⥤ ((Bᵒᵖ × A) ⥤ (Bᵒᵖ × B)) := prodFunctor ((·)ᵒᵖ, (𝟭 B))
+def phi_ : (A ⥤ B) ⥤ Dist A B  := (curry.obj prodFunctor).obj (𝟭 Bᵒᵖ) ⋙ (whiskeringRight _ _ _ ).obj (Functor.hom B)
 
--- def _phi : (A ⥤ B) ⥤ Dist B A := (curry.obj (Prod.swap _ _ ⋙ prodFunctor)).obj (𝟭 B)
+def _phi : (A ⥤ B)ᵒᵖ ⥤  Dist B A := opFunctor ⋙ (curry.obj (Prod.swap _ _ ⋙ prodFunctor )).obj (𝟭 B) ⋙ (whiskeringRight _ _ _ ).obj (Functor.hom B)
+
+
+def phi_F  (F : A ⥤ B) : Dist A B  := prodFunctor.obj (𝟭 Bᵒᵖ, F) ⋙ (Functor.hom B)
+
+def phi_F  (F : A ⥤ B) : Dist A B  := prodFunctor.obj (𝟭 Bᵒᵖ, F) ⋙ (Functor.hom B)
+
+
+-- property
+example  : Category (A ⥤ B) := inferInstance
+
+def isoFG (F : A ⥤ B ) (G : A ⥤ B) : Quiver.Hom F G ≅ Quiver.Hom (phi_.obj F) (phi_.obj G) := sorry
+
 
 def preimage  {X Y : (A ⥤ B)} (f : phi_.obj X ⟶ phi_.obj Y) : X ⟶ Y := sorry -- {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y
 
