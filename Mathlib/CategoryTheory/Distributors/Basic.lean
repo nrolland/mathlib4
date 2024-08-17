@@ -11,9 +11,11 @@ import Mathlib.CategoryTheory.Monoidal.Types.Basic
 import Mathlib.CategoryTheory.Products.Associator
 import Mathlib.CategoryTheory.Distributors.Coends
 import Mathlib.CategoryTheory.Distributors.Ends
+import Mathlib.CategoryTheory.Distributors.EndsOfFunctorToType
 import Mathlib.CategoryTheory.Functor.Basic
 import Mathlib.CategoryTheory.EqToHom
 import Mathlib.Combinatorics.Quiver.Basic
+
 /-!
 # Distributors
 

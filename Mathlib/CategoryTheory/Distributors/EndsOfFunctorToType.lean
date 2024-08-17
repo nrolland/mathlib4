@@ -96,5 +96,5 @@ def end_summit' : (Bᵒᵖ × B ⥤ Type u) ⥤  Type (max u u₂ v₂) :=
 variable {A : Type u₂ } [Category.{v₂} A]
 
 
-def NatIsCoend {f : A ⥤ B} {g : A ⥤ B} :
-  (Quiver.Hom (A ⥤ B) _ f g ) = End () := sorry
+-- def NatIsCoend {f : A ⥤ B} {g : A ⥤ B} :
+--   (Quiver.Hom (A ⥤ B) _ f g ) = End () := sorry

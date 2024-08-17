@@ -8,35 +8,36 @@ import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 open CategoryTheory
 open Limits
 
-universe v₂ u₂ u vm um
+universe v₁ v₂ vm u₁ u₂ u um
+variable {J : Type u₁} [Category.{v₁} J]
 variable {B : Type u₂ } [Category.{v₂} B]
 variable {M : Type vm } [Category.{um} M]
-variable (F : (Bᵒᵖ×B) ⥤ M)
 
 
-structure IsTerminal (t : B) where
+structure IsTerminalSimple (t : B) where
   /-- There is a morphism from any cone point to `t.pt` -/
-  lift : ∀ s : Cone F, s.pt ⟶ t.pt
-  /-- The map makes the triangle with the two natural transformations commute -/
-  fac : ∀ (s : Cone F) (j : J), lift s ≫ t.π.app j = s.π.app j := by aesop_cat
+  lift : ∀ s : B, s ⟶ t
   /-- It is the unique such map to do this -/
-  uniq : ∀ (s : Cone F) (m : s.pt ⟶ t.pt) (_ : ∀ j : J, m ≫ t.π.app j = s.π.app j), m = lift s := by
+  uniq : ∀ (s : B) (m : s ⟶ t), m = lift s := by
     aesop_cat
 
 structure IsLimit (t : Cone (Functor.empty.{0} B)) where
   /-- There is a morphism from any cone point to `t.pt` -/
-  lift : ∀ s : Cone F, s.pt ⟶ t.pt
+  lift : ∀ s : Cone (Functor.empty.{0} B), s.pt ⟶ t.pt
   /-- The map makes the triangle with the two natural transformations commute -/
-  fac : ∀ (s : Cone F) (j : J), lift s ≫ t.π.app j = s.π.app j := by aesop_cat
+  fac : ∀ (s : Cone (Functor.empty.{0} B)) (j : Discrete.{0} PEmpty), lift s ≫ t.π.app j = s.π.app j := by aesop_cat
   /-- It is the unique such map to do this -/
-  uniq : ∀ (s : Cone F) (m : s.pt ⟶ t.pt) (_ : ∀ j : J, m ≫ t.π.app j = s.π.app j), m = lift s := by
+  uniq : ∀ (s : Cone (Functor.empty.{0} B)) (m : s.pt ⟶ t.pt) (_ : ∀ j : Discrete.{0} PEmpty, m ≫ t.π.app j = s.π.app j), m = lift s := by
     aesop_cat
+
 
 def toCone (b : B ) : Cone (Functor.empty.{0} B) := sorry
 
 
+def terminalWedgeToLimitOfEmptyDiag {t:B} (w : IsTerminalSimple t) :  LimitCone ( Functor.empty.{0} B) := sorry
 
-def terminalWedgeToLimitOfEmptyDiag {t:B} (w : IsTerminal t) :  LimitCone ( Functor.empty.{0} B) := sorry
+
+variable (F : (Bᵒᵖ×B) ⥤ M)
 
 structure Wedge : Type (max (max um u₂) vm) where
   pt : M
@@ -56,17 +57,6 @@ instance : Category (Wedge F) where
   Hom := fun x y => WedgeMorphism _ x y
   id := fun x => {  Hom := 𝟙 x.pt }
   comp := fun f g =>  { Hom := f.Hom ≫ g.Hom}
-
-structure TerminalWedge (t : Wedge F) where
-  /-- There is a morphism from any cone point to `t.pt` -/
-  lift : ∀ s : Cone F, s.pt ⟶ t.pt
-  /-- The map makes the triangle with the two natural transformations commute -/
-  fac : ∀ (s : Cone F) (j : J), lift s ≫ t.π.app j = s.π.app j := by aesop_cat
-  /-- It is the unique such map to do this -/
-  uniq : ∀ (s : Cone F) (m : s.pt ⟶ t.pt) (_ : ∀ j : J, m ≫ t.π.app j = s.π.app j), m = lift s := by
-    aesop_cat
-
-
 
 
 -- Definition of end via wedges
