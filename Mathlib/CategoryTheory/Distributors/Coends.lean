@@ -33,6 +33,11 @@ instance : Category (CoWedge F) where
     Hom := f.Hom ≫ g.Hom
     cowedgeCondition := fun c => by rw [<- Category.assoc]; aesop_cat }
 
+-- missing 0 IsCoend
+
 noncomputable def coend_nadir [HasInitial (CoWedge F)] := initial (CoWedge F)
 
+
 -- missing : a cowedge for F is a cocone for F . pi
+
+-- missing : a coend is a colimit for F . pi

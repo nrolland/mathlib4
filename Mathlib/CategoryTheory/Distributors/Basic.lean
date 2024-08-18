@@ -66,6 +66,7 @@ def prodFunctor : (A ⥤ B) × (C ⥤ D) ⥤ A × C ⥤ B × D where
   obj FG := FG.1.prod FG.2
   map nm :=  NatTrans.prod nm.1 nm.2
 
+
 --- embeddings
 
 
@@ -78,7 +79,6 @@ def _phi : (A ⥤ B)ᵒᵖ ⥤  Dist B A := Functor.opHom _ _ ⋙ (curry.obj (Pr
 example  : Category (A ⥤ B) := inferInstance
 
 def isoFG (F : A ⥤ B ) (G : A ⥤ B) : Quiver.Hom F G ≅ Quiver.Hom (phi_.obj F) (phi_.obj G) := sorry
-
 
 def preimage  {X Y : (A ⥤ B)} (f : phi_.obj X ⟶ phi_.obj Y) : X ⟶ Y := sorry -- {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y
 

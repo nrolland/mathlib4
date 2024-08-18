@@ -15,31 +15,36 @@ variable {M : Type vm } [Category.{um} M]
 
 
 structure IsTerminalSimple (t : B) where
-  /-- There is a morphism from any cone point to `t.pt` -/
+  /-- There is a morphism from any cone point to `t` -/
   lift : ∀ s : B, s ⟶ t
   /-- It is the unique such map to do this -/
   uniq : ∀ (s : B) (m : s ⟶ t), m = lift s := by
     aesop_cat
 
-def IsTerminalUnique (t:B) := ∀ X : B, Unique (X ⟶ t)
+def IsTerminalUnique (t:B) := ∀ x : B, Unique (x ⟶ t)
 
 def equiv (t:B) : (IsTerminalSimple t) ≅ IsTerminalUnique t where
   hom (ts) x := { default := ts.lift x, uniq := ts.uniq x}
   inv w := { lift := fun s => (w s).default, uniq := fun s => (w s).uniq}
 
--- un point est un cone
-def toCone (b : B) : Cone (Functor.empty.{0} B) := asEmptyCone b
+structure IsLimit_mathlib (t : Cone (Functor.empty.{0} B)) where
+  /-- There is a morphism from any cone point to `t.pt` -/
+  lift : ∀ s : Cone (Functor.empty.{0} B), s.pt ⟶ t.pt
+  /-- The map makes the triangle with the two natural transformations commute -/
+  fac : ∀ (s : Cone (Functor.empty.{0} B)) (j : Discrete.{0} PEmpty), lift s ≫ t.π.app j = s.π.app j := by aesop_cat
+  /-- It is the unique such map to do this -/
+  uniq : ∀ (s : Cone (Functor.empty.{0} B)) (m : s.pt ⟶ t.pt) (_ : ∀ j : Discrete.{0} PEmpty, m ≫ t.π.app j = s.π.app j), m = lift s := by
+    aesop_cat
 
--- un point est un cone
-def toLimit (t : B) (w : IsTerminalSimple t) : IsLimit (toCone t ) := IsTerminal.ofUniqueHom (w.lift) (w.uniq)
+def toCone (b : B) : Cone (Functor.empty.{0} B) := asEmptyCone b
+def toLimit (t : B) (w : IsTerminalSimple t) : IsLimit (toCone t ) := IsTerminal.ofUniqueHom sorry sorry -- IsTerminal.ofUniqueHom (fun _ ↦ (Functor.const _).obj ⟨⟨⟨⟩⟩⟩) fun _ _ ↦ rfl
+
+
+
+
 
 def terminalWedgeToLimitOfEmptyDiag {t:B} (w : IsTerminalSimple t) :  LimitCone ( Functor.empty.{0} B) := sorry
 
--- A faire : (TerminalWedge (comme IsTerminalSimple, mais avec le homset des wedge))
--- A faire : Equivalence avec islimit ( 0 -> wedge) (aka terminal de la lib)
--- missing : a wedge for F is a cone for F . pi
--- missing : un terminal wedge pour F est terminal cone pour F . p
--- missing Nat(F,G) ≅ end B(F-,G=)
 
 variable (F : (Bᵒᵖ×B) ⥤ M)
 
@@ -68,3 +73,7 @@ noncomputable def end_summit [HasTerminal (Wedge F)] := terminal (Wedge F)
 
 def endCone [Limits.HasLimit ((CategoryOfElements.π (Functor.hom B)) ⋙ F)] : Type _ :=
   Limits.LimitCone ((CategoryOfElements.π (Functor.hom B)) ⋙ F)
+
+-- missing : a wedge for F is a cone for F . pi
+
+-- missing : an end is a limit for F . pi
