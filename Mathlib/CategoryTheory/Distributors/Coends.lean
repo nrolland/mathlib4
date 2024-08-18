@@ -22,16 +22,16 @@ structure CoWedge : Type (max (max um u₂) vm) where
 
 structure CoWedgeMorphism (x y : CoWedge F) where
   Hom : x.pt ⟶ y.pt
-  cowedgeCondition : ∀ (c : B), x.leg c ≫ Hom = y.leg c := by aesop_cat
+  fac : ∀ (c : B), x.leg c ≫ Hom = y.leg c := by aesop_cat
 
-attribute [simp] CoWedgeMorphism.cowedgeCondition
+attribute [simp] CoWedgeMorphism.fac
 
 instance : Category (CoWedge F) where
   Hom := fun x y => CoWedgeMorphism _ x y
   id := fun x => {Hom := 𝟙 x.pt}
   comp := fun {X Y Z} f g => {
     Hom := f.Hom ≫ g.Hom
-    cowedgeCondition := fun c => by rw [<- Category.assoc]; aesop_cat }
+    fac := fun c => by rw [<- Category.assoc]; aesop_cat }
 
 -- missing 0 IsCoend
 
