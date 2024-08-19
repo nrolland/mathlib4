@@ -1,135 +1,156 @@
-import Mathlib.CategoryTheory.Category.Cat.Adjunction
 import Mathlib.CategoryTheory.Elements
-import Mathlib.CategoryTheory.Limits.FinallySmall
-import Mathlib.CategoryTheory.Elements
-import Mathlib.CategoryTheory.Limits.HasLimits
-import Mathlib.CategoryTheory.Products.Bifunctor
-import Mathlib.CategoryTheory.Limits.Shapes.Terminal
+import Mathlib.CategoryTheory.Equivalence
+import Mathlib.CategoryTheory.Functor.Category
 
 open CategoryTheory
-open Limits
+open CategoryOfElements
+open Functor
+open Opposite
 
-universe v₁ v₂ vm u₁ u₂ u um
+
+section wedge
+universe v₁ v₂ v₃ vm u₁ u₂ u₃ u um
 variable {J : Type u₁} [Category.{v₁} J]
--- variable {A : Type u₁ } [Category.{v₁} A]
 variable {B : Type u₂ } [Category.{v₂} B]
+variable {C : Type u₃ } [Category.{v₃} C]
 variable {M : Type vm } [Category.{um} M]
-
-
-
 variable (F : (Bᵒᵖ×B) ⥤ M)
 
+@[ext]
 structure Wedge : Type (max (max um u₂) vm) where
   pt : M
-  leg (c:B) : pt ⟶ F.obj (Opposite.op c,c)
+  leg (c:B) : pt ⟶ F.obj (op c,c)
   wedgeCondition : ∀ ⦃c c' : B⦄ (f : c ⟶ c'),
-    (leg c ≫ F.map ((𝟙 c).op,f) : pt ⟶ F.obj (Opposite.op c, c'))
-     = (leg c' ≫ F.map (f.op, 𝟙 c')  : pt ⟶ F.obj (Opposite.op c, c')) := by aesop_cat
+    (leg c ≫ F.map ((𝟙 c).op,f) : pt ⟶ F.obj (op c, c'))
+     = (leg c' ≫ F.map (f.op, 𝟙 c')  : pt ⟶ F.obj (op c, c')) := by aesop_cat
 
-structure WedgeMorphism (x y : Wedge F) where
-  Hom : x.pt ⟶ y.pt
+@[ext]
+structure WedgeMorphism  {F : (Bᵒᵖ×B) ⥤ M} (x y : Wedge F) where
+  hom : x.pt ⟶ y.pt
   fac : ∀ (c : B),
-    Hom ≫ y.leg c = x.leg c := by aesop_cat
+    hom ≫ y.leg c = x.leg c := by aesop_cat
 
 attribute [simp] WedgeMorphism.fac
 
 instance : Category (Wedge F) where
-  Hom := fun x y => WedgeMorphism _ x y
-  id := fun x => {  Hom := 𝟙 x.pt }
-  comp := fun f g =>  { Hom := f.Hom ≫ g.Hom}
-
--- limits ---
-set_option linter.longLine false
-structure IsTerminalSimple (t : B) where
-  lift : ∀ s : B, s ⟶ t
-  uniq : ∀ (s : B) (m : s ⟶ t), m = lift s := by   aesop_cat
-
-def IsTerminalUnique (t:B) := ∀ X : B, Unique (X ⟶ t)
-def equiv1 (t:B) : (IsTerminalSimple t) ≅ IsTerminalUnique t where
-  hom (ts) x := { default := ts.lift x, uniq := ts.uniq x}
-  inv w := { lift := fun s => (w s).default, uniq := fun s => (w s).uniq}
-
-def equiv2 (t : B) : (IsTerminalSimple t) ≅ IsLimit (asEmptyCone t ) where
-  hom w :=  IsTerminal.ofUniqueHom (w.lift) (w.uniq)
-  inv w := { lift := fun s =>  w.lift (asEmptyCone s)
-             uniq :=  fun s m => w.uniq (asEmptyCone s) m (fun ⟨j⟩ => j.elim) }
-
-def wr {a b : B} {i j : J} (fu : (a ⟶ b)  ×  (i ⟶ j)) : ((a,i) ⟶ (b,j)) := (fu.1, fu.2)
-
-
-lemma wre {a b : B} {i j : J} (fg : (a,i) ⟶ (b,j)) : wr fg =  fg := rfl
-
-def wrl  {a b c : B} {i j k : J} (fg : (a,i) ⟶ (b,j)) (u : b ⟶ c) (v : j ⟶ k) :
-    fg ≫ wr (u, v ) = (fg.1 ≫ u, fg.2 ≫ v) := rfl
-
-
-def awedgeisacone (w : Wedge F) : Cone (CategoryOfElements.π (Functor.hom B) ⋙ F ) := {
-  pt := w.pt
-  π := {
-    app  := fun (⟨(bo,b'),f⟩) => w.leg bo.unop ≫ F.map (𝟙 bo, f)
-    naturality := fun (⟨(bop,b'),f⟩) (⟨(cop,c'),g⟩)
-      (⟨(uo, (v : b' ⟶ c') ),(h : (Functor.hom B).map (uo, v) f = g)⟩)  => by
-        let b := bop.unop
-        let c := cop.unop
-        let u : c ⟶ b := uo.unop
-        let f : b ⟶ b' := f
-        let h :  u ≫ f ≫ v = g := h
-
-        simp
-        calc
-        w.leg c ≫ F.map (𝟙 cop, g) =  w.leg c ≫ F.map (𝟙 cop, u ≫ f ≫ v) := by rw [<- h]
-        _  =  w.leg c ≫ F.map ( wr (𝟙 cop, u ) ≫ wr (𝟙 cop, f ) ≫ wr (𝟙 cop, v) ) :=
-          have :  (𝟙 cop ≫ 𝟙 cop ≫ 𝟙 cop, u ≫ f ≫ v) =  wr (𝟙 cop, u ) ≫ wr (𝟙 cop, f ) ≫ wr (𝟙 cop, v) := rfl
-          have  : (𝟙 cop, u ≫ f ≫ v) =   wr (𝟙 cop, u ) ≫ wr (𝟙 cop, f ) ≫ wr (𝟙 cop, v) := by simp_all only [Category.comp_id]
-          by rw [this]
-        _  =  w.leg c ≫ F.map ( wr (𝟙 cop, u ) )≫ F.map (wr (𝟙 cop, f )) ≫ F.map  (wr (𝟙 cop, v) ) := by rw [F.map_comp, F.map_comp]
-        _  = ( w.leg c ≫ F.map ( wr (𝟙 cop, u ) ))≫ F.map (wr (𝟙 cop, f )) ≫ F.map  (wr (𝟙 cop, v) ) := by rw [Category.assoc]
-        _  =  (w.leg b ≫ F.map ( wr (uo, 𝟙 b ))) ≫ F.map (wr (𝟙 cop, f )) ≫ F.map (wr (𝟙 cop, v) ) := by
-          have : (w.leg c ≫ F.map (wr (𝟙 cop, u))) = w.leg b ≫ F.map ( wr (uo, 𝟙 b )) := w.wedgeCondition u
-          rw [this]
-        _  =  w.leg b ≫ (F.map ( wr (uo, 𝟙 b )) ≫ F.map (wr (𝟙 cop, f )) ≫ F.map (wr (𝟙 cop, v) )) :=  by rw [Category.assoc]
-        _  =  w.leg b ≫ ((F.map ( wr (uo, 𝟙 b )) ≫ F.map (wr (𝟙 cop, f ))) ≫ F.map (wr (𝟙 cop, v) )) :=  by rw [Category.assoc]
-        _  =  w.leg b ≫ ((F.map (wr (uo, 𝟙 b ) ≫ wr (𝟙 cop, f ))) ≫ F.map (wr (𝟙 cop, v) )) := by rw [<- F.map_comp]
-        _  =  w.leg b ≫ ((F.map (wr (uo, f ))) ≫ F.map (wr (𝟙 cop, v) )) := by
-            have :  F.map (wr (uo, 𝟙 b )) ≫ F.map (wr (𝟙 cop, f )) =  F.map (wr (uo, 𝟙 b ) ≫ wr (𝟙 cop, f ))  := by rw [<- F.map_comp]
-            have :  w.leg b ≫ ((F.map (wr (uo, 𝟙 b )) ≫ F.map (wr (𝟙 cop, f ))) ≫ F.map (wr (𝟙 cop, v) )) =  w.leg b ≫ ((F.map (wr (uo, f ))) ≫ F.map (wr (𝟙 cop, v) ))  := by
-                  have :  F.map (wr (uo, 𝟙 b )) ≫ F.map ( wr (𝟙 cop, f )) = F.map (wr (uo, f ))  :=
-                    have : wr (uo, 𝟙 b ) ≫ wr (𝟙 cop, f ) = wr (uo ≫ 𝟙 cop, 𝟙 b  ≫ f )  := rfl
-                    by simp_all only [Category.comp_id,  Category.id_comp]
-                  rw [this]
-            simp_all only [Category.comp_id,  Category.id_comp]
-        _ = w.leg b ≫ ( (F.map (wr (𝟙 bop, f ))≫ F.map ( wr (uo, 𝟙 b' ) )) ≫ F.map (wr (𝟙 cop, v) )) := by
-          have :  w.leg b ≫ ((F.map (wr (uo, f ))) ≫ F.map (wr (𝟙 cop, v) )) =  w.leg b ≫ ( (F.map (wr (𝟙 bop, f ))≫ F.map ( wr (uo, 𝟙 b' ) )) ≫ F.map (wr (𝟙 cop, v) ))  := by
-            have :   F.map ( wr (𝟙 bop, f )) ≫ F.map (wr (uo, 𝟙 b' )) = F.map (wr (uo, f ))     :=
-              have soo :  wr (𝟙 bop, f ) ≫ wr (uo, 𝟙 b' ) = wr (𝟙 bop ≫ uo, f  ≫ 𝟙 b')  := rfl
-              have aa : F.map ( wr (𝟙 bop, f )) ≫ F.map (wr (uo, 𝟙 b' )) = F.map ( wr (𝟙 bop, f ) ≫ wr (uo, 𝟙 b' )) := by rw [F.map_comp]
-              by simp_all only [Category.comp_id, Category.id_comp]
-            rw [<- this]
-          simp_all only [Category.comp_id, Category.id_comp]
-        _ = (w.leg b ≫  (F.map (wr (𝟙 bop, f ))))≫ F.map ( wr (uo, 𝟙 b' ) ) ≫ F.map (wr (𝟙 cop, v) ) := by  simp_all only [Category.assoc]
-        _ = (w.leg b ≫  F.map (wr (𝟙 bop, f )))≫  F.map (wr (uo, v)) := by
-            have a : wr (uo ≫ 𝟙 cop, 𝟙 b'  ≫ v ) = wr (uo , v )  := by simp_all only [Category.comp_id, Category.id_comp]
-            have b : wr (uo, 𝟙 b' ) ≫ wr (𝟙 cop, v ) = wr (uo ≫ 𝟙 cop, 𝟙 b'  ≫ v )  := rfl
-            have c : F.map ( wr (uo, 𝟙 b' )) ≫ F.map (wr (𝟙 cop, v) ) = F.map ( wr (uo, 𝟙 b' )≫ wr (𝟙 cop, v) ) := by rw [F.map_comp]
-            rw [c, b , a ]
-        _ = w.leg b ≫ F.map (𝟙 bop, f) ≫ F.map (uo, v)    :=  by rw [<- Category.assoc];rfl
-        }
-}
-
-
--- missing : a wedge for F is a cone for F . pi
--- missing : un wedge pour F est un cone pour F . p
--- missing : un terminal wedge pour F est terminal cone pour F . p -- terminal + iso
--- missing Nat(F,G) ≅ end B(F-,G=)
-
-
-
----
-
+  Hom := fun x y => WedgeMorphism x y
+  id := fun x => { hom := 𝟙 x.pt }
+  comp := fun f g =>  { hom := f.hom ≫ g.hom }
 
 
 /-- end is a terminal wedges -/
-noncomputable def end_summit [HasTerminal (Wedge F)] := terminal (Wedge F)
+noncomputable def endAsWedge [Limits.HasTerminal (Wedge F)] := Limits.terminal (Wedge F)
 
-def endCone [Limits.HasLimit ((CategoryOfElements.π (Functor.hom B)) ⋙ F)] : Type _ :=
-  Limits.LimitCone ((CategoryOfElements.π (Functor.hom B)) ⋙ F)
+end wedge
+
+------------------------------------------------------------------------------------------------
+section natasend
+universe v₁ v₂ v₃ vm u₁ u₂ u₃ u um
+variable {A : Type v₂ } [Category.{v₁} A]
+variable {B : Type u₂ } [Category.{v₂} B]
+
+
+def natAsEnd (F G : A ⥤ B): Wedge ( F.op.prod G ⋙ hom B)  where
+  pt := NatTrans F G
+  leg a α := α.app a
+  wedgeCondition a b f := funext (fun _ => by simp)
+
+def wqwr.{u_1, u_2} (C : Type u_1) [Category.{u_2, u_1} C]
+    (p : Cᵒᵖ × C) : (hom C).obj p = (unop p.1 ⟶ p.2) := Functor.hom_obj C p
+
+def wm.{u_1, u_2} (C : Type u_1) [Category.{u_2, u_1} C] :
+  ∀ {X Y : Cᵒᵖ × C} (f : X ⟶ Y) (h : unop X.1 ⟶ X.2),
+  (hom C).map f h = f.1.unop ≫ h ≫ f.2 := Functor.hom_map C
+
+def isTerminalNatAsEnd (F G : A ⥤ B) : Limits.IsTerminal (natAsEnd F G ) :=
+  Limits.IsTerminal.ofUniqueHom (fun W => {
+    hom := fun x : W.pt => {
+      app := fun a => W.leg a x
+      naturality := fun a b f => by
+        let h := congrFun ((W.wedgeCondition f).symm) x
+        simp at (h);
+        exact h}
+    fac := fun _ => funext fun _ => rfl
+  })
+  (fun X m => by
+    apply WedgeMorphism.ext
+    funext x
+    apply NatTrans.ext
+    ext a
+    exact ( congrFun (m.fac a) x))
+
+
+end natasend
+
+
+------------------------------------------------------------------------------------------------
+section wedgeandcone
+universe v₁ v₂ v₃ vm u₁ u₂ u₃ u um
+variable {J : Type u₁} [Category.{v₁} J]
+variable {B : Type u₂ } [Category.{v₂} B]
+variable {C : Type u₃ } [Category.{v₃} C]
+variable {M : Type vm } [Category.{um} M]
+variable (F : (Bᵒᵖ×B) ⥤ M)
+
+
+/-- A cone for `F . π ` is a wedge for `F` -/
+def coneToWedge  : (Limits.Cone (π (hom B) ⋙ F)) ⥤ (Wedge F) where
+  obj c :=  {
+    leg  := fun (c': B) => c.π.app ⟨(op c',c'),𝟙 c'⟩
+    wedgeCondition  := fun d d' f => by
+      have sq2 := c.w (j := ⟨(op d, d), 𝟙 d⟩) (j' := ⟨(op d, d'), f⟩) ⟨(𝟙 _, f), by simp⟩
+      have sq1 := c.w (j := ⟨(op d', d'), 𝟙 d'⟩) (j' := ⟨(op d, d'), f⟩) ⟨(f.op, 𝟙 _), by simp⟩
+      dsimp at *; rw [sq1,sq2] }
+  map f := { hom := f.hom }
+
+/-- A wedge for `F` is a cone for `F . π ` -/
+@[simp] def wedgeToCone (F : (Bᵒᵖ × B) ⥤ M) :  (Wedge F) ⥤ (Limits.Cone (π (hom B) ⋙ F)) where
+  obj w := {
+    π := {
+      app  := fun (⟨(bo,b'),f⟩) => w.leg bo.unop ≫ F.map (𝟙 bo, f)
+      naturality := fun (⟨(bop,b'),f⟩) (⟨(cop,c'),g⟩)
+        (⟨((uo : bop ⟶ cop), (v : b' ⟶ c') ),h⟩)  => by
+          dsimp at uo v h
+          let b := bop.unop
+          let c := cop.unop
+          change b ⟶ b' at f
+          change c ⟶ c' at g
+          change uo.unop ≫ f ≫ v = g at h
+
+          simp
+          have : w.leg c ≫ F.map (𝟙 cop, g) =
+            w.leg b ≫ (F.map (𝟙 bop, f)) ≫ (F.map ((uo, v) : (bop, b') ⟶ (cop,c') )):= by
+            rw [<- h]
+            have : (𝟙 cop = 𝟙 cop ≫ 𝟙 cop ≫ 𝟙 cop) := by aesop_cat
+            rw [this]
+            rw [← prod_comp _ _ ((𝟙 cop, uo.unop))  ((𝟙 cop ≫ 𝟙 cop , f ≫ v))]
+            rw [← prod_comp _ _ ((𝟙 cop, f))  ((𝟙 cop, v))]
+            rw [F.map_comp, F.map_comp]
+            rw [<- Category.assoc]
+            rw [<-op_id, w.wedgeCondition uo.unop]
+            rw [Category.assoc, ← F.map_comp,← F.map_comp,← F.map_comp]
+            simp_all only [Quiver.Hom.op_unop, prod_comp, op_id, Category.comp_id, Category.id_comp]
+          exact this
+          }
+  }
+  map f := {
+    hom := f.hom
+    w := fun (⟨(d,_),_⟩) => by dsimp; rw [← f.fac d.unop, Category.assoc] }
+
+-- Equivalence of categories of Wedge(F) and Cone(π (hom B) ⋙ F)
+def equivalence_ConeFbar_WedgeF : Equivalence (Wedge F) (Limits.Cone (π (hom B) ⋙ F)) where
+  functor := wedgeToCone F
+  inverse := coneToWedge F
+  unitIso := sorry
+  counitIso := sorry
+  functor_unitIso_comp := sorry
+
+def endAsCone [Limits.HasLimit ((CategoryOfElements.π (hom B)) ⋙ F)] : Type _ :=
+  Limits.LimitCone ((CategoryOfElements.π (hom B)) ⋙ F)
+
+
+-- missing : un terminal wedge pour F est terminal cone pour F . p -- terminal + iso
+
+-- def end_ascone_aswedge_equiv [Limits.HasLimit ((CategoryOfElements.π (hom B)) ⋙ F)]
+--     [Limits.HasTerminal (Wedge F)]: endAsCone F ≅ endAsWedge F  := sorry
+end wedgeandcone

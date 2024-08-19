@@ -91,7 +91,7 @@ def myEnd [HasTerminal (Wedge F)] := terminal (Wedge F)
 
 -- Function of morphisms
 def bar_F_cone_mor_as_wedgeMorphism {c : Cone (bar_fun F)} {d : Cone (bar_fun F)} (f : ConeMorphism c d) : WedgeMorphism (bar_F_cone_as_wedge c) (bar_F_cone_as_wedge d) where
-  Hom := f.Hom
+  Hom := f.hom
 
 -- Functor
 def functor_cone_to_wedge (F : (Cᵒᵖ×C) ⥤ D) : Functor (Cone (bar_fun F)) (Wedge F) where
@@ -109,7 +109,9 @@ def functor_cone_to_wedge (F : (Cᵒᵖ×C) ⥤ D) : Functor (Cone (bar_fun F)) 
       intro ⟨(d,d'),f⟩ ⟨(e,e'),g⟩ ⟨(h,h'),prop⟩
       aesop_cat_nonterminal
       dsimp at prop h h'
-      change _ ⟶ _ at f g
+      have f' : d.unop ⟶ d' := f
+      change d.unop ⟶ d' at f
+      change _ ⟶ _ at g
       dsimp at f g
       have sq1 := w.wedgeCondition h.unop
       rw [Wedge.leg] at *
@@ -123,27 +125,27 @@ def functor_cone_to_wedge (F : (Cᵒᵖ×C) ⥤ D) : Functor (Cone (bar_fun F)) 
       rw [← prod_comp Cᵒᵖ C ((𝟙 e, f) : (e,d.unop) ⟶ (e,d'))  ((𝟙 e, h') : (e,d') ⟶ (e,e'))]
       rw [F.map_comp,F.map_comp, ← Category.assoc,sq1]
       rw [Category.assoc, ← F.map_comp,← F.map_comp,← F.map_comp]
-      aesop_cat
+      simp_all only [Category.comp_id, prod_comp, Category.id_comp]
   }
 
--- --  Function on morphisms
--- @[simp] def wedgeMorphism_as_coneMorphism {c : Wedge F} {d : Wedge F} (f : WedgeMorphism c d) : ConeMorphism (wedge_as_cone c) (wedge_as_cone d) where
---   Hom := f.Hom
---   w := by
---     intro ⟨(d,d'),f⟩
---     aesop_cat_nonterminal
---     have wedgeCon := f_1.wedgeCondition d.unop
---     rw [← wedgeCon, Category.assoc]
+--  Function on morphisms
+@[simp] def wedgeMorphism_as_coneMorphism {c : Wedge F} {d : Wedge F} (f : WedgeMorphism c d) : ConeMorphism (wedge_as_cone c) (wedge_as_cone d) where
+  hom := f.Hom
+  w := by
+    intro ⟨(d,d'),f⟩
+    aesop_cat_nonterminal
+    have wedgeCon := f_1.wedgeCondition d.unop
+    rw [← wedgeCon, Category.assoc]
 
--- -- Functor
--- @[simp] def functor_wedge_to_cone (F : (Cᵒᵖ×C) ⥤ D) : Functor (Wedge F) (Cone (bar_fun F)) where
---   obj x := wedge_as_cone x
---   map f := wedgeMorphism_as_coneMorphism f
+-- Functor
+@[simp] def functor_wedge_to_cone (F : (Cᵒᵖ×C) ⥤ D) : Functor (Wedge F) (Cone (bar_fun F)) where
+  obj x := wedge_as_cone x
+  map f := wedgeMorphism_as_coneMorphism f
 
--- -- Equivalence of categories of Wd(F) and Cone(F bar)
--- def equivalence_cone_Fbar_WdF : Equivalence (Wedge F) (Cone (bar_fun F)) where
---   functor := functor_wedge_to_cone F
---   inverse := functor_cone_to_wedge F
---   unitIso := sorry
---   counitIso := sorry
---   functor_unitIso_comp := sorry
+-- Equivalence of categories of Wd(F) and Cone(F bar)
+def equivalence_cone_Fbar_WdF : Equivalence (Wedge F) (Cone (bar_fun F)) where
+  functor := functor_wedge_to_cone F
+  inverse := functor_cone_to_wedge F
+  unitIso := sorry
+  counitIso := sorry
+  functor_unitIso_comp := sorry
