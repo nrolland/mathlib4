@@ -7,8 +7,6 @@ open CategoryOfElements
 open Functor
 open Opposite
 
-
-section wedge
 universe v₁ v₂ v₃ vm u₁ u₂ u₃ u um
 variable {J : Type u₁} [Category.{v₁} J]
 variable {B : Type u₂ } [Category.{v₂} B]
@@ -39,28 +37,15 @@ instance : Category (Wedge F) where
 
 
 /-- end is a terminal wedges -/
-noncomputable def endAsWedge [Limits.HasTerminal (Wedge F)] := Limits.terminal (Wedge F)
+noncomputable def End [Limits.HasTerminal (Wedge F)] := Limits.terminal (Wedge F)
 
-end wedge
+variable {A : Type v₂ } [Category.{v₁} A]
 
 ------------------------------------------------------------------------------------------------
-section natasend
-universe v₁ v₂ v₃ vm u₁ u₂ u₃ u um
-variable {A : Type v₂ } [Category.{v₁} A]
-variable {B : Type u₂ } [Category.{v₂} B]
-
-
 def natAsEnd (F G : A ⥤ B): Wedge ( F.op.prod G ⋙ hom B)  where
   pt := NatTrans F G
   leg a α := α.app a
   wedgeCondition a b f := funext (fun _ => by simp)
-
-def wqwr.{u_1, u_2} (C : Type u_1) [Category.{u_2, u_1} C]
-    (p : Cᵒᵖ × C) : (hom C).obj p = (unop p.1 ⟶ p.2) := Functor.hom_obj C p
-
-def wm.{u_1, u_2} (C : Type u_1) [Category.{u_2, u_1} C] :
-  ∀ {X Y : Cᵒᵖ × C} (f : X ⟶ Y) (h : unop X.1 ⟶ X.2),
-  (hom C).map f h = f.1.unop ≫ h ≫ f.2 := Functor.hom_map C
 
 def isTerminalNatAsEnd (F G : A ⥤ B) : Limits.IsTerminal (natAsEnd F G ) :=
   Limits.IsTerminal.ofUniqueHom (fun W => {
@@ -80,16 +65,8 @@ def isTerminalNatAsEnd (F G : A ⥤ B) : Limits.IsTerminal (natAsEnd F G ) :=
     exact ( congrFun (m.fac a) x))
 
 
-end natasend
-
-
 ------------------------------------------------------------------------------------------------
 section wedgeandcone
-universe v₁ v₂ v₃ vm u₁ u₂ u₃ u um
-variable {J : Type u₁} [Category.{v₁} J]
-variable {B : Type u₂ } [Category.{v₂} B]
-variable {C : Type u₃ } [Category.{v₃} C]
-variable {M : Type vm } [Category.{um} M]
 variable (F : (Bᵒᵖ×B) ⥤ M)
 
 
