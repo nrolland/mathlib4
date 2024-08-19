@@ -39,9 +39,9 @@ instance : Category (Wedge F) where
 /-- end is a terminal wedges -/
 noncomputable def End [Limits.HasTerminal (Wedge F)] := Limits.terminal (Wedge F)
 
+------------------------------------------------------------------------------------------------
 variable {A : Type v₂ } [Category.{v₁} A]
 
-------------------------------------------------------------------------------------------------
 def natAsEnd (F G : A ⥤ B): Wedge ( F.op.prod G ⋙ hom B)  where
   pt := NatTrans F G
   leg a α := α.app a
