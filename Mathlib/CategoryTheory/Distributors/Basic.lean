@@ -78,7 +78,15 @@ def _phi : (A ⥤ B)ᵒᵖ ⥤  Dist B A := Functor.opHom _ _ ⋙ (curry.obj (Pr
 -- property
 example  : Category (A ⥤ B) := inferInstance
 
-def isoFG (F : A ⥤ B ) (G : A ⥤ B) : Quiver.Hom F G ≅ Quiver.Hom (phi_.obj F) (phi_.obj G) := sorry
+
+
+def asd  (F : A ⥤ B ) (G : A ⥤ B) [HasTerminal (Wedge (F.op.prod G ⋙ Functor.hom B))]  :=
+  let sadas :=  endWedge ( F.op.prod G ⋙ Functor.hom B)
+  let as := natAsEnd F G
+  true
+  --  isIso_of_isTerminal
+
+def isoFG (F : A ⥤ B ) (G : A ⥤ B) : NatTrans F G ≅ NatTrans (phi_.obj F) (phi_.obj G) := sorry
 
 def preimage  {X Y : (A ⥤ B)} (f : phi_.obj X ⟶ phi_.obj Y) : X ⟶ Y := sorry -- {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y
 

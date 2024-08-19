@@ -35,19 +35,45 @@ instance : Category (Wedge F) where
   id := fun x => { hom := 𝟙 x.pt }
   comp := fun f g =>  { hom := f.hom ≫ g.hom }
 
+abbrev End :=  Σ x : Wedge F, Limits.IsTerminal x
+
+def wr {a b : B} {c d : C} (fg : (a ⟶ b) × (c ⟶ d)) : (a,c) ⟶ (b,d):= (fg.1,fg.2)
+
+def isoWedgeFromFctrHom (G : (Bᵒᵖ×B) ⥤ M) (i: F ⟶ G) : Wedge F ⥤ Wedge G  where
+  obj w :=  {
+    pt := w.pt
+    leg := fun c =>  w.leg c ≫ i.app (op c, c)
+    wedgeCondition := fun a b f => by
+          dsimp
+          rw [Category.assoc, <- i.naturality ((𝟙 (op a), f) : (op a, a) ⟶ (op a, b))]
+          rw [Category.assoc, <- i.naturality ((f.op, 𝟙 b) : (op b, b) ⟶ (op a, b))]
+          have : (𝟙 a).op = 𝟙 (op a) := rfl
+          rw [<- this]
+          rw [<- Category.assoc, w.wedgeCondition f, Category.assoc]
+  }
+  map {W Z} f := { hom := sorry, fac := sorry}
+
+def isoWedgeFromFctrInv (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G) : Wedge F ≅ Wedge G  where
+  hom := sorry
+  inv := sorry
+
+
+def isoEndFromFctr (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G)  (x : End F) : End G  :=
+  match x with
+  | ⟨xw,lx⟩ => sorry
 
 /-- end is a terminal wedges -/
-noncomputable def End [Limits.HasTerminal (Wedge F)] := Limits.terminal (Wedge F)
+noncomputable def endWedge [Limits.HasTerminal (Wedge F)] := Limits.terminal (Wedge F)
 
 ------------------------------------------------------------------------------------------------
 variable {A : Type v₂ } [Category.{v₁} A]
 
-def natAsEnd (F G : A ⥤ B): Wedge ( F.op.prod G ⋙ hom B)  where
+def natAsWedge (F G : A ⥤ B): Wedge ( F.op.prod G ⋙ hom B)  where
   pt := NatTrans F G
   leg a α := α.app a
   wedgeCondition a b f := funext (fun _ => by simp)
 
-def isTerminalNatAsEnd (F G : A ⥤ B) : Limits.IsTerminal (natAsEnd F G ) :=
+def natAsEnd (F G : A ⥤ B) : Limits.IsTerminal (natAsWedge F G ) :=
   Limits.IsTerminal.ofUniqueHom (fun W => {
     hom := fun x : W.pt => {
       app := fun a => W.leg a x
