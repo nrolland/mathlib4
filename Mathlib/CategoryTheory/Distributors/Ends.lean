@@ -13,6 +13,7 @@ variable {B : Type u₂ } [Category.{v₂} B]
 variable {C : Type u₃ } [Category.{v₃} C]
 variable {M : Type vm } [Category.{um} M]
 variable (F : (Bᵒᵖ×B) ⥤ M)
+set_option linter.longLine false
 
 @[ext]
 structure Wedge : Type (max (max um u₂) vm) where
@@ -35,9 +36,25 @@ instance : Category (Wedge F) where
   id := fun x => { hom := 𝟙 x.pt }
   comp := fun f g =>  { hom := f.hom ≫ g.hom }
 
-abbrev End :=  Σ x : Wedge F, Limits.IsTerminal x
+-- def asWedge (pt : M) (leg : ∀(c:B), pt ⟶ F.obj (op c,c)) (wedgeCondition : ∀ ⦃c c' : B⦄ (f : c ⟶ c'),
+--     (leg c ≫ F.map ((𝟙 c).op,f) : pt ⟶ F.obj (op c, c')) =
+--       (leg c' ≫ F.map (f.op, 𝟙 c')  : pt ⟶ F.obj (op c, c'))) : Wedge F :=
+--   { pt := pt, leg := leg }
 
-def wr {a b : B} {c d : C} (fg : (a ⟶ b) × (c ⟶ d)) : (a,c) ⟶ (b,d):= (fg.1,fg.2)
+-- class Inhabited (α : Sort u) where
+--   default : α
+
+class InhabitedWedge (s : M) (F : (Bᵒᵖ×B) ⥤ M) where
+  defaultWedge : {w : Wedge F // w.pt = s}
+
+abbrev End :=  Σ w : Wedge F, Limits.IsTerminal w -- a transformer en categorie
+abbrev Terminal :=  Σ x : C, Limits.IsTerminal x
+
+class InhabitedEnd (s : M) (F : (Bᵒᵖ×B) ⥤ M) where
+  defaultEnd : { ⟨x,_⟩ : End F | x.pt = s}
+
+
+-- def wr {a b : B} {c d : C} (fg : (a ⟶ b) × (c ⟶ d)) : (a,c) ⟶ (b,d):= (fg.1,fg.2)
 
 def isoWedgeFromFctrHom (G : (Bᵒᵖ×B) ⥤ M) (i: F ⟶ G) : Wedge F ⥤ Wedge G  where
   obj w :=  {
@@ -53,10 +70,21 @@ def isoWedgeFromFctrHom (G : (Bᵒᵖ×B) ⥤ M) (i: F ⟶ G) : Wedge F ⥤ Wedg
   }
   map {W Z} f := { hom := sorry, fac := sorry}
 
+
+-- advanced
+-- "Nat(F,G)  ≃: End B(F-,G=)"  := (CC (End B(F-,G=))).mk (defaultEnd (Nat(F,G)))
+-- "xpt : M ≃: Terminal C"   := (CC (Terminal C)).mk (defaultC x : C, isTerminal (defaultC x))
+
+-- basic
+-- "(natAsWedge F G, natAsEnd F G) ≃: End B(F-,G=)" = (CC (End B(F-,G=))).mk (natAsWedge F G, natAsEnd F G)
+-- "(x : C, IsTerminal x)" ≃: Terminal C  := (CC (Terminal C)).mk (x : C, IsTerminal x)
+
+-- def (≃:) (x : C, IsTerminal x)  :=
+-- protected def mk {α : Sort u} (s : Setoid α) (a : α) : Quotient s :=  Quot.mk Setoid.r a
+
 def isoWedgeFromFctrInv (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G) : Wedge F ≅ Wedge G  where
   hom := sorry
   inv := sorry
-
 
 def isoEndFromFctr (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G)  (x : End F) : End G  :=
   match x with
@@ -68,12 +96,16 @@ noncomputable def endWedge [Limits.HasTerminal (Wedge F)] := Limits.terminal (We
 ------------------------------------------------------------------------------------------------
 variable {A : Type v₂ } [Category.{v₁} A]
 
+
 def natAsWedge (F G : A ⥤ B): Wedge ( F.op.prod G ⋙ hom B)  where
   pt := NatTrans F G
   leg a α := α.app a
-  wedgeCondition a b f := funext (fun _ => by simp)
+  wedgeCondition _ _ _ := funext (fun _ => by simp)
 
-def natAsEnd (F G : A ⥤ B) : Limits.IsTerminal (natAsWedge F G ) :=
+def natAsWedge2 (F G : A ⥤ B): Wedge ( F.op.prod G ⋙ hom B) :=
+  Wedge.mk (NatTrans F G) (fun a α ↦ α.app a) fun _ _ _ => funext (fun _ => by simp)
+
+def natAsWedgeIsTerminal (F G : A ⥤ B) : Limits.IsTerminal (natAsWedge F G ) :=
   Limits.IsTerminal.ofUniqueHom (fun W => {
     hom := fun x : W.pt => {
       app := fun a => W.leg a x
@@ -90,6 +122,11 @@ def natAsEnd (F G : A ⥤ B) : Limits.IsTerminal (natAsWedge F G ) :=
     ext a
     exact ( congrFun (m.fac a) x))
 
+instance (F G : A ⥤ B) : InhabitedWedge (NatTrans F G) (F.op.prod G ⋙ hom B) where
+  defaultWedge := ⟨natAsWedge F G,rfl⟩
+
+instance (F G : A ⥤ B) : InhabitedEnd (NatTrans F G) (F.op.prod G ⋙ hom B) where
+  defaultEnd := ⟨⟨natAsWedge F G , natAsWedgeIsTerminal F G ⟩, rfl⟩
 
 ------------------------------------------------------------------------------------------------
 section wedgeandcone
