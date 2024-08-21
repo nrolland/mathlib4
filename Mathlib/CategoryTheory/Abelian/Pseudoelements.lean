@@ -295,7 +295,7 @@ section
 /-- An epimorphism is surjective on pseudoelements. -/
 theorem pseudo_surjective_of_epi {P Q : C} (f : P ⟶ Q) [Epi f] : Function.Surjective f :=
   fun qbar =>
-  Quotient.inductionOn qπ (hom B) ⋙ Fun q =>
+  Quotient.inductionOn qbar fun q =>
     ⟨(pullback.fst f q.hom : Over P),
       Quotient.sound <|
         ⟨pullback f q.hom, 𝟙 (pullback f q.hom), pullback.snd _ _, inferInstance, inferInstance, by
