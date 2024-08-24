@@ -88,19 +88,24 @@ instance endGroupoid : Groupoid (End F) := terminalGroupoid
 def connected (x y : End F) : x ⟶ y := Limits.IsTerminal.from y.2 x.1
 
 
-def isoFctrIsoIsTerminalWedge (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G) (x : Wedge F) : (Limits.IsTerminal x) ≅ (Limits.IsTerminal ((isoFctrIsoWedge i).hom x)) where
+def isoFctrIsoIsTerminalWedge {G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) (x : Wedge F) : (Limits.IsTerminal x) ≅ (Limits.IsTerminal ((isoFctrIsoWedge i).hom x)) where
   hom := sorry
   inv := sorry
   hom_inv_id := sorry
   inv_hom_id := sorry
 
-def isoFctrIsoEnd (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G)  : End F ≅ End G  where
+def isoFctrIsoEndDirect (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G)  : End F ≅ End G  where
   hom := sorry
   inv  := sorry
   hom_inv_id := sorry
   inv_hom_id := sorry
 
+-- il n'y a pas d'equivalence entre categories, donc on passe par Cat ()
+def isoFctrIsoEnd1 {G : (Bᵒᵖ×B) ⥤ M} (i:  F ≅ G)  : Cat.of (Wedge F) ≅ Cat.of (Wedge G) :=  sorry
 
+def isoFctrIsoEnd2 {G : (Bᵒᵖ×B) ⥤ M}  (i: Wedge F ≅ Wedge G)  : (End F) ≅  (End G)  :=  isoCatIsoTerminal i
+
+-- def isoFctrIsoEnd2 {G : (Bᵒᵖ×B) ⥤ M}  (i: Wedge F ≅ Wedge G)  : Cat.of (End F) ≅ Cat.of (End G)  :=  isoCatIsoTerminal i
 
 ------------------------------------------------------------------------------------------------
 variable {A : Type v₂ } [Category.{v₁} A]
