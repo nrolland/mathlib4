@@ -13,7 +13,7 @@ open CategoryTheory
 open Limits
 open IsLimit
 
-universe v₁ v₂ v₃ vm u₁ u₂ u₃ u um
+universe v₁ v₂ v₃ vm u₁ u₂ u₃ u um w
 variable {J : Type u₁} [Category.{v₁} J]
 variable {B : Type u₂ } [Category.{v₂} B]
 variable {C : Type u₃ } [Category.{v₃} C]
@@ -35,10 +35,10 @@ def terminalConnected (x y : Terminal B) : x ⟶ y := Limits.IsTerminal.from y.2
 theorem uniq_morphism_to_terminal {s t : B} (h : IsTerminal t) {f f' : s ⟶ t} : f = f' :=
   congrArg ConeMorphism.hom (uniq_cone_morphism h : asEmptyConeMorphism f = asEmptyConeMorphism f')
 
-
-
-def asEmptyConeIso  (i: IsoOfCategory B C) : IsoOfCategory (J ⥤ B) (J ⥤ C)  where
+def asFunctorIso  (i: IsoOfCategory B C) : IsoOfCategory (J ⥤ B) (J ⥤ C)  where
   hom  := (whiskeringRight _  _ _ ).obj i.hom
   inv  :=  (whiskeringRight _  _ _ ).obj i.inv
   hom_inv_id :=  by rw [<- whiskeringRight_comp, i.hom_inv_id]; rfl
   inv_hom_id  := by rw [<- whiskeringRight_comp, i.inv_hom_id]; rfl
+
+  -- IsoOfCategory (Discrete.{w} PEmpty ⥤  B) (Discrete.{w} PEmpty ⥤ C) := asFunctorIso i

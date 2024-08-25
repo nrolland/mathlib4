@@ -8,20 +8,16 @@ variable {B : Type u₂ } [Category.{v₂} B]
 
 variable (F  : J ⥤ B)
 
-theorem mapeq (F  : J ⥤ B) { y y'  : J} (p : y = y') :
-  F.map (eqToHom p) =  eqToHom (congrArg F.obj p) :=
-  by subst p;  simp_all only [eqToHom_refl, Functor.map_id]
-
 theorem comp_eqToHom_iffMap {x y y'  : J} (p : y = y') (f : x ⟶ y) (g : x ⟶ y') :
  ( F.map (f ≫ eqToHom p) = F.map g ) ↔ (F.map f = F.map (g ≫ eqToHom p.symm)) :=
     let other := (comp_eqToHom_iff (congrArg F.obj p) (F.map f) (F.map g))
     { mp := fun h => by
-        rw [F.map_comp, mapeq F p] at h
+        rw [F.map_comp, eqToHom_map F p] at h
         have q := other.mp h ;
-        rw [F.map_comp, mapeq F p.symm]
+        rw [F.map_comp, eqToHom_map F p.symm]
         exact q
       mpr := fun h => by
-        rw [F.map_comp, mapeq F p.symm] at h
+        rw [F.map_comp, eqToHom_map F p.symm] at h
         have q := other.mpr h ;
-        rw [F.map_comp, mapeq F p]
+        rw [F.map_comp, eqToHom_map F p]
         exact q }

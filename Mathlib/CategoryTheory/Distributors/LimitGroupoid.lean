@@ -18,7 +18,6 @@ variable {C : Type u₂ } [Category.{v₂} C]
 
 variable (F G : J ⥤ B)
 
-
 abbrev Limit  :=  Σ x : Cone F, IsLimit x
 instance limitGroupoid : Groupoid (Limit F) where
   Hom x y  :=  ConeMorphism x.1 y.1
@@ -30,11 +29,40 @@ instance limitGroupoid : Groupoid (Limit F) where
 
 def limitConnected (x y : Limit F) : x ⟶ y := IsLimit.liftConeMorphism y.2 x.1
 
-def limitFctr : (J ⥤ B ) ⥤ Cat where
+def limitFctr : (J ⥤ B) ⥤ Cat where -- a generaliser a Cat / Cat
   obj f := Cat.of (Limit f )
   map {f g } α := sorry
   map_id f := sorry
   map_comp := sorry
 
+--facile
 def isoFunctorIsoLimit {F G : J ⥤ B} (i: F ≅ G)  : Cat.of (Limit F) ≅ Cat.of (Limit G) :=
   Functor.mapIso limitFctr i
+
+
+-- pas facile
+def isoFunctorIsoLimit2 (i : IsoOfCategory (J ⥤ B) (J ⥤ C)) (F : J ⥤ B ) :
+    Cat.of (Limit F) ≅ Cat.of (Limit (G)) :=
+    -- categorie des cones iso
+    -- terminal iso
+    sorry
+
+-- #min_imports
+
+
+-- Pour notre affaire :
+
+-- B(F-,G=) : bop * b -> set
+-- [Bop,Set](B( , F-), B( , G=)) : bop * b -> set
+-- iso
+
+-- categorie de wedge pour  B(F-,G=)
+-- categorie de wedge pour l'autre
+-- iso
+
+-- terminal pour l'un
+-- terminal pour l'autre
+-- iso
+
+
+-- pour end ou pour limit, iso terminal est clef

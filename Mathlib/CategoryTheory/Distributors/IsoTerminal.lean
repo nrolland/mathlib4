@@ -34,7 +34,6 @@ def isoOfCategoryIsoTerminal  (i:  IsoOfCategory B C)  :  Terminal B ⥤ Termina
       (fun x (m : x ⟶ i.hom.obj t) => -- on veut : m = toNewTerminal h x, dans C
         let q : i.inv.obj (i.hom.obj t) = t  :=  inv_hom_idobj i t
 
-        -- on a :  (hom ⋙ inv).map m = (hom ⋙ inv).map (toNewTerminal h x), dans B
         have eq : i.hom.map (i.inv.map m ≫  eqToHom q) =
           i.hom.map (i.inv.map (toNewTerminal h x) ≫ eqToHom q)
           := congrArg i.hom.map (uniq_morphism_to_terminal h)
@@ -53,17 +52,24 @@ def isoOfCategoryIsoTerminal  (i:  IsoOfCategory B C)  :  Terminal B ⥤ Termina
 
         idFunctorMap i.inv_hom_id  m (toNewTerminal h x) eq)
       ⟩
-  map := sorry
+  map {x y} f := i.hom.map f
+  map_id  := fun  ⟨t,h⟩ => -- map (𝟙 b) = 𝟙 (obj b) a faire
+    by  apply uniq_morphism_to_terminal
+        --  ⟨t',h'⟩ = obj ⟨t,h⟩
+        -- uniq_morphism_to_terminal h'
+        sorry
+  map_comp :=  -- map (f ≫ g) = map f ≫ map g
+      sorry -- idem
 
 
 def isoCatIsoTerminal (i: IsoOfCategory B C) : IsoOfCategory (Terminal B) (Terminal C) where
   hom := isoOfCategoryIsoTerminal i
   inv := isoOfCategoryIsoTerminal i.symm
-  hom_inv_id := sorry
+  hom_inv_id := sorry -- a faire
   inv_hom_id := sorry
 
 def isoCatIsoTerminal2 (i: Cat.of B ≅ Cat.of C)  : Cat.of (Terminal B) ≅ Cat.of (Terminal C) :=
-  -- have asdd  := isoFunctorIsoLimit (asEmptyConeIso i)
+  -- have asdd  := isoFunctorIsoLimit sorry
   sorry -- using
 
 -- def isoFunctorIsoLimit {F G : J ⥤ B} (i: F ≅ G)  : Cat.of (Limit F) ≅ Cat.of (Limit G) :=
