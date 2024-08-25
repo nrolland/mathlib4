@@ -4,10 +4,12 @@ import Mathlib.CategoryTheory.Category.Cat
 
 open CategoryTheory
 
-universe v₂ v₃ u₂ u₃
+universe v₂ v₃ v₄ u₂ u₃ u₄
 variable (B : Type u₂ ) [Category.{v₂} B]
 variable (C : Type u₃ ) [Category.{v₃} C]
+variable (D : Type u₄ ) [Category.{v₄} D]
 
+@[ext]
 structure IsoOfCategory : Type (max u₂ u₃ v₂ v₃) where
   /-- The forward direction of a cat isomorphism. -/
   hom : B ⥤ C
@@ -20,14 +22,39 @@ structure IsoOfCategory : Type (max u₂ u₃ v₂ v₃) where
   is the identity functor on the target. -/
   inv_hom_id : inv ⋙ hom = 𝟭 C := by aesop_cat
 
+
+def isoRefl: IsoOfCategory B B := {
+  hom := 𝟭 B
+  inv := 𝟭 B }
+
+variable {B : Type u₂}  [Category.{v₂} B]
+variable {C : Type u₃ } [Category.{v₃} C]
+variable {D : Type u₄ } [Category.{v₄} D]
+
 def IsoOfCategory.symm (i : IsoOfCategory B C) : IsoOfCategory C B where
   hom := i.inv
   inv := i.hom
   hom_inv_id := i.inv_hom_id
   inv_hom_id := i.hom_inv_id
 
-variable {B : Type u₂} [Category.{v₂} B]
-variable {C : Type u₃} [Category.{v₃} C]
+def IsoOfCategory.trans  (i : IsoOfCategory B C)  (j : IsoOfCategory C D): IsoOfCategory B D where
+  hom := i.hom ⋙ j.hom
+  inv := j.inv  ⋙ i.inv
+  hom_inv_id := by
+    rw [Functor.assoc]
+    nth_rw 2 [<- Functor.assoc]
+    rw [j.hom_inv_id, Functor.id_comp]
+    exact i.hom_inv_id
+  inv_hom_id := by
+    rw [Functor.assoc]
+    nth_rw 2 [<- Functor.assoc]
+    rw [i.inv_hom_id, Functor.id_comp]
+    exact j.inv_hom_id
+
+lemma comp_symm_id (i : IsoOfCategory B C)  : i.trans i.symm = isoRefl B :=
+   IsoOfCategory.ext i.hom_inv_id i.hom_inv_id
+lemma symm_comp_id (i : IsoOfCategory B C)  : i.symm.trans i = isoRefl C :=
+   IsoOfCategory.ext i.inv_hom_id i.inv_hom_id
 
 def Functor.obj : ( B ⥤ C) → B → C := fun q => Prefunctor.obj (Functor.toPrefunctor (q : B ⥤ C))
 def Functormap  {x y : B} (f : x ⟶ y ) (F : B ⥤ C) := F.map f

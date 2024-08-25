@@ -15,7 +15,7 @@ import Mathlib.CategoryTheory.Distributors.EndsOfFunctorToType
 import Mathlib.CategoryTheory.Functor.Basic
 import Mathlib.CategoryTheory.EqToHom
 import Mathlib.Combinatorics.Quiver.Basic
-
+import Mathlib.Combinatorics.Quiver.Basic
 /-!
 # Distributors
 

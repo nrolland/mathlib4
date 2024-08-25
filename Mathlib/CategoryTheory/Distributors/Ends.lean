@@ -2,6 +2,8 @@ import Mathlib.CategoryTheory.Elements
 import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.Functor.Category
 import Mathlib.CategoryTheory.Distributors.LimitGroupoid
+import Mathlib.CategoryTheory.Distributors.IsoTerminal
+
 
 open CategoryTheory
 open CategoryOfElements
