@@ -22,6 +22,16 @@ structure IsoOfCategory : Type (max u₂ u₃ v₂ v₃) where
   is the identity functor on the target. -/
   inv_hom_id : inv ⋙ hom = 𝟭 C := by aesop_cat
 
+def IsoOfCategory.toEquiv (i: IsoOfCategory C D)  : C ≌ D where
+  functor := i.hom
+  inverse := i.inv
+  unitIso :=  eqToIso i.hom_inv_id.symm
+  counitIso := eqToIso i.inv_hom_id
+  functor_unitIso_comp := by
+    intro c
+    have := eqToHom_map i.hom (congrArg (fun f ↦ f.obj c)  i.hom_inv_id.symm)
+    simp_all only [Functor.id_obj, eqToIso.hom, eqToHom_app, eqToHom_trans, eqToHom_refl]
+
 
 def isoRefl: IsoOfCategory B B := {
   hom := 𝟭 B

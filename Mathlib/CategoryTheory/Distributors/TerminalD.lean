@@ -41,4 +41,7 @@ def asFunctorIso  (i: IsoOfCategory B C) : IsoOfCategory (J ⥤ B) (J ⥤ C)  wh
   hom_inv_id :=  by rw [<- whiskeringRight_comp, i.hom_inv_id]; rfl
   inv_hom_id  := by rw [<- whiskeringRight_comp, i.inv_hom_id]; rfl
 
-  -- IsoOfCategory (Discrete.{w} PEmpty ⥤  B) (Discrete.{w} PEmpty ⥤ C) := asFunctorIso i
+def qeqe  (i: IsoOfCategory B C) (x : B ) : (IsTerminal x) ≃ (IsTerminal (i.hom.obj x)) := sorry
+
+def emptyConeExt {a b : Cone (Functor.empty C)} (h : a.pt = b.pt) : a ≅ b :=
+  Cones.ext (eqToIso h) (fun a => a.as.elim)
