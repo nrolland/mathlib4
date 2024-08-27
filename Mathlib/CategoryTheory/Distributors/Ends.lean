@@ -3,7 +3,13 @@ import Mathlib.CategoryTheory.Equivalence
 import Mathlib.CategoryTheory.Functor.Category
 import Mathlib.CategoryTheory.Distributors.LimitGroupoid
 import Mathlib.CategoryTheory.Distributors.IsoTerminal
+/-!
+# Wedges and Ends
 
+-- les lemmes sont typiquement + simple avec les cones, pour lesquel ils existent deja
+
+-/
+namespace CategoryTheory
 
 open CategoryTheory
 open CategoryOfElements
@@ -19,6 +25,7 @@ variable (F : (Bᵒᵖ×B) ⥤ M)
 set_option linter.longLine false
 infixr:90 " ⋗ " => fun f g ↦ Function.comp g f
 
+section Wedge
 @[ext]
 structure Wedge : Type (max (max um u₂) vm) where
   pt : M
@@ -40,11 +47,9 @@ instance : Category (Wedge F) where
   comp f g := {
     hom := f.hom ≫ g.hom
     fac := fun c => by
-      simp_all only [Category.assoc, WedgeMorphism.fac]
-    }
+      simp_all only [Category.assoc, WedgeMorphism.fac] }
 
--- def wr {a b : B} {c d : C} (fg : (a ⟶ b) × (c ⟶ d)) : (a,c) ⟶ (b,d):= (fg.1,fg.2)
-
+-- typiquement + simple avec les cone, pour lesquel il existe bcp de lemmes
 def wedgeHom {F G : (Bᵒᵖ×B) ⥤ M} (α : F ⟶ G) : Wedge F ⥤ Wedge G  where
   obj w :=  {
     pt := w.pt
@@ -55,13 +60,12 @@ def wedgeHom {F G : (Bᵒᵖ×B) ⥤ M} (α : F ⟶ G) : Wedge F ⥤ Wedge G  wh
           rw [Category.assoc, <- α.naturality ((f.op, 𝟙 b) : (op b, b) ⟶ (op a, b))]
           have : (𝟙 a).op = 𝟙 (op a) := rfl
           rw [<- this]
-          rw [<- Category.assoc, w.wedgeCondition f, Category.assoc]
-  }
+          rw [<- Category.assoc, w.wedgeCondition f, Category.assoc] }
   map {X Y} m := {
     hom := m.hom
-    fac := fun c => by dsimp;rw [<-  m.fac c, Category.assoc ]}
+    fac := fun c => by dsimp;rw [<-  m.fac c, Category.assoc ] }
 
-def isoFctrIsoWedge {F G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) : Wedge F ≅ Wedge G  where
+def isoFctrIsoWedge' {F G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) : Wedge F ≅ Wedge G  where
   hom := (wedgeHom i.hom).obj
   inv := (wedgeHom i.inv).obj
   hom_inv_id : (wedgeHom i.hom).obj ≫ (wedgeHom i.inv).obj = 𝟙 (Wedge F) := by
@@ -82,32 +86,35 @@ def isoFctrIsoWedge {F G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) : Wedge F ≅ Wedge 
       simp_all only [Iso.inv_hom_id_app, Category.comp_id, Category.assoc]
 
 
+def isoFctrIsoWedge {F G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) : IsoOfCategory (Wedge F)  (Wedge G)  where
+  hom := sorry --  : B ⥤ C
+  inv := sorry -- : C ⥤ B
+  hom_inv_id := sorry --  : hom ⋙ inv = 𝟭 B := by aesop_cat
+  inv_hom_id := sorry -- : inv ⋙ hom = 𝟭 C := by aesop_cat
+
+end Wedge
+
+
+section Ends
+
 /-- An end is a terminal wedge -/
-abbrev End :=  Σ w : Wedge F, Limits.IsTerminal w
+abbrev Ends :=  Terminal (Wedge F)
 
 /-- ends forms a groupoid -/
-instance endGroupoid : Groupoid (End F) := terminalGroupoid
-def connected (x y : End F) : x ⟶ y := Limits.IsTerminal.from y.2 x.1
+instance endGroupoid : Groupoid (Ends F) := terminalGroupoid
+def connected (x y : Ends F) : x ⟶ y := y.2.from x.1
+def Ends.uniqueUpToIso {T T' : C} (th : Terminal (Wedge F)) (th' : Terminal (Wedge F)) : th.fst ≅ th'.fst := sorry -- pas necessaire
 
 
-def isoFctrIsoIsTerminalWedge {G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) (x : Wedge F) : (Limits.IsTerminal x) ≅ (Limits.IsTerminal ((isoFctrIsoWedge i).hom x)) where
-  hom := sorry
-  inv := sorry
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+-- TODO : comme composition de isoFctrIsoWedge et isoCatIsoTerminal.obj
+def isoFctrIsoIsTerminalWedge {G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) (x : Wedge F) : (Limits.IsTerminal x) ≅ (Limits.IsTerminal ((isoFctrIsoWedge i).hom.obj x)) :=  sorry
 
-def isoFctrIsoEndDirect (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G)  : End F ≅ End G  where
-  hom := sorry
-  inv  := sorry
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+-- TODO : comme composition de isoFctrIsoWedge et isoCatIsoTerminal
+def isoFctrIsoEndDirect (G : (Bᵒᵖ×B) ⥤ M) (i: F ≅ G)  : IsoOfCategory (Ends F) (Ends G)  := sorry
 
--- il n'y a pas d'equivalence entre categories, donc on passe par Cat ()
+-- Plus tard : on passe par Cat
 def isoFctrIsoEnd1 {G : (Bᵒᵖ×B) ⥤ M} (i:  F ≅ G)  : Cat.of (Wedge F) ≅ Cat.of (Wedge G) :=  sorry
 
-def isoFctrIsoEnd2 {G : (Bᵒᵖ×B) ⥤ M}  (i: Wedge F ≅ Wedge G)  : (End F) ≅  (End G)  :=  isoCatIsoTerminal i
-
--- def isoFctrIsoEnd2 {G : (Bᵒᵖ×B) ⥤ M}  (i: Wedge F ≅ Wedge G)  : Cat.of (End F) ≅ Cat.of (End G)  :=  isoCatIsoTerminal i
 
 ------------------------------------------------------------------------------------------------
 variable {A : Type v₂ } [Category.{v₁} A]
@@ -139,10 +146,11 @@ def natAsWedgeIsTerminal (F G : A ⥤ B) : Limits.IsTerminal (natAsWedge F G ) :
     exact ( congrFun (m.fac a) x))
 
 
-def natAsEnd (F G : A ⥤ B): End ( F.op.prod G ⋙ hom B) := ⟨natAsWedge F G, natAsWedgeIsTerminal F G⟩
+def natAsEnd (F G : A ⥤ B): Ends ( F.op.prod G ⋙ hom B) := ⟨natAsWedge F G, natAsWedgeIsTerminal F G⟩
 
 def toEnd (F G : A ⥤ B) (α : NatTrans F G) : (natAsEnd F G).1.pt := α
 
+----
 
 -- advanced
 -- "Nat(F,G)  ≃: End B(F-,G=)"  := (CC (End B(F-,G=))).mk (defaultEnd (Nat(F,G)))
@@ -155,7 +163,26 @@ def toEnd (F G : A ⥤ B) (α : NatTrans F G) : (natAsEnd F G).1.pt := α
 -- def (≃:) (x : C, IsTerminal x)  :=
 -- protected def mk {α : Sort u} (s : Setoid α) (a : α) : Quotient s :=  Quot.mk Setoid.r a
 
+
+
+
+-- Pour notre affaire :
+
+-- B(F-,G=) : bop * b -> set
+-- [Bop,Set](B( , F-), B( , G=)) : bop * b -> set
+-- iso
+
+-- categorie de wedge pour  B(F-,G=)
+-- categorie de wedge pour l'autre
+-- iso
+
+-- terminal pour l'un
+-- terminal pour l'autre
+-- iso
+
+
 ------------------------------------------------------------------------------------------------
+end Ends
 
 section wedgeandcone
 -- def end_ascone_aswedge_equiv [Limits.HasLimit ((CategoryOfElements.π (hom B)) ⋙ F)]

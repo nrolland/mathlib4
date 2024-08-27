@@ -29,29 +29,15 @@ def equivOfIso (i: IsoOfCategory C D)  : C ≌ D where
     simp_all only [Functor.id_obj, eqToIso.hom, eqToHom_app, eqToHom_trans, eqToHom_refl]
 
 noncomputable def isoOfCategoryIsoTerminalObj (i: IsoOfCategory B C)  (th : Terminal B ) :
-  Terminal C :=
-    let as : IsTerminal (i.hom.obj th.fst) := IsTerminal.isTerminalObj (equivOfIso i).functor th.fst th.snd
-    ⟨i.hom.obj th.fst, as⟩
+  Terminal C := ⟨i.hom.obj th.fst, IsTerminal.isTerminalObj (equivOfIso i).functor th.fst th.snd⟩
 
-
-variable (E : C ≌ D)
 
 -- set_option trace.Meta.synthInstance true
-
-noncomputable example : PreservesLimitsOfShape (CategoryTheory.Discrete PEmpty.{1}) E.functor :=
-  inferInstance
-
-
-noncomputable example : E.functor.IsEquivalence :=
-  inferInstance
-
-
-noncomputable example : E.functor.IsRightAdjoint :=
-  inferInstance
-
-def isRightAdjoint_of_isEquivalence {F : C ⥤ D} [F.IsEquivalence] :
-    IsRightAdjoint F := F.asEquivalence.isRightAdjoint_functor
-
+variable (E : C ≌ D)
+noncomputable example : PreservesLimitsOfShape (CategoryTheory.Discrete PEmpty.{1}) E.functor := inferInstance
+example : E.functor.IsEquivalence :=  inferInstance
+example : E.functor.IsRightAdjoint :=  inferInstance
+def isRightAdjoint_of_isEquivalence {F : C ⥤ D} [F.IsEquivalence] : IsRightAdjoint F := F.asEquivalence.isRightAdjoint_functor
 
 ------
 variable {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
@@ -68,7 +54,6 @@ def rightAdjointPreservesLimits : PreservesLimitsOfSize.{v, u} G where
               @Equiv.unique _ _ (IsLimit.isoUniqueConeMorphism.hom hc _) homequiv } }
 --protected def Equiv.unique _ _ [Unique β] (e : α ≃ β) : Unique α
 --def isoUniqueConeMorphism {t : Cone F} : IsLimit t ≅ ∀ s, Unique (s ⟶ t) where
-
 
 
 
@@ -102,8 +87,9 @@ def isoOfCategoryIsoTerminalObjEnfer (x: B) (equiv:  B ≌ C)  (h : IsTerminal x
     sorry
   result
 
-def emptyConeExt {a b : Cone (empty C)} (h : a.pt = b.pt) : a ≅ b :=
-  Cones.ext (eqToIso h) (fun a => a.as.elim)
+-- def isoOfCategoryIsoTerminalObjEnfer3 (x: B) (equiv:  B ≌ C) (h : IsTerminal x) : IsTerminal (equiv.functor.obj x) :=
+--   let coneCatquiv :  (empty.{0} B) ≅  (empty.{0} C) :=  sorry
+--   sorry
 
 def isoOfCategoryIsoTerminalObj' (x: B) (equiv:  B ≌ C) (h : IsTerminal x) : IsTerminal (equiv.functor.obj x) :=
   let coneCatequiv := (Cones.functorialityEquivalence _ equiv).trans
@@ -113,9 +99,3 @@ def isoOfCategoryIsoTerminalObj' (x: B) (equiv:  B ≌ C) (h : IsTerminal x) : I
     emptyConeExt rfl
 
   ((IsLimit.ofConeEquiv coneCatequiv).invFun h).ofIsoLimit equiv
-
-
--- def isoOfCategoryIsoTerminalObjEnfer3 (x: B) (equiv:  B ≌ C) (h : IsTerminal x) : IsTerminal (equiv.functor.obj x) :=
---   let coneCatquiv :  (empty.{0} B) ≅  (empty.{0} C) :=  sorry
-
---   sorry

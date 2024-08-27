@@ -31,6 +31,8 @@ instance terminalGroupoid : Groupoid (Terminal B) where
   inv_comp {_ y} _ := IsTerminal.hom_ext y.2 _ _
   comp_inv {x _} _ := IsTerminal.hom_ext x.2 _ _
 def terminalConnected (x y : Terminal B) : x ⟶ y := Limits.IsTerminal.from y.2 x.1
+-- def IsTerminal.uniqueUpToIso {T T' : C} (hT : IsTerminal T) (hT' : IsTerminal T') : T ≅ T'
+
 
 theorem uniq_morphism_to_terminal {s t : B} (h : IsTerminal t) {f f' : s ⟶ t} : f = f' :=
   congrArg ConeMorphism.hom (uniq_cone_morphism h : asEmptyConeMorphism f = asEmptyConeMorphism f')
