@@ -16,6 +16,38 @@ variable {J : Type u₁} [Category.{v₁} J]
 variable {M : Type vm } [Category.{um} M]
 variable (F : J ⥤ M)
 
+structure Simple (F : J ⥤ M) where
+  pt : M
+
+structure SimpleMorphism  {F : J ⥤ M} (x y : Simple F) where
+  hom : x.pt ⟶ y.pt
+
+instance : Category (Simple F) where -- pour un foncteur F, les cones forment une categorie
+  Hom x y:=  SimpleMorphism x y
+  id x := { hom := 𝟙 x.pt }
+  comp f g := { hom := f.hom ≫ g.hom }
+
+def simpleCompose {F G : J ⥤ M} (α : F ⟶ G) : Simple F ⥤ Simple G  where -- un morphisme de foncteur se traduit en un morphisme de categorie
+  obj c :=  { pt := c.pt  }
+  map {X Y} m := { hom := m.hom }
+
+def eqmapSimple {F G H : J ⥤ M} (α : F ⟶ G) (β : G ⟶ H) {X Y: Simple F}: ∀ (m : X ⟶ Y),
+   (simpleCompose (α ≫ β)).map m =  (simpleCompose α ⋙ simpleCompose β).map m := sorry
+
+-- les types en question
+def eqmapSimple_type1 {F G H : J ⥤ M} (α : F ⟶ G) (β : G ⟶ H) {X Y: Simple F} (m : X ⟶ Y) :
+    (simpleCompose (α ≫ β)).obj X ⟶ (simpleCompose (α ≫ β)).obj Y :=
+  (simpleCompose (α ≫ β)).map m
+
+def eqmapSimple_type1' {F G H : J ⥤ M} (α : F ⟶ G) (β : G ⟶ H) {X Y: Simple F} (m : X ⟶ Y) :
+    (simpleCompose (α ≫ β)).obj X ⟶ (simpleCompose (α ≫ β)).obj Y :=
+  (simpleCompose (α ≫ β)).map m
+
+def eqmapSimple_type2 {F G H : J ⥤ M} (α : F ⟶ G) (β : G ⟶ H) {X Y: Simple F} (m : X ⟶ Y)  :
+    (simpleCompose α ⋙ simpleCompose β).obj X ⟶ (simpleCompose α ⋙ simpleCompose β).obj Y :=
+ (simpleCompose α ⋙ simpleCompose β).map m
+
+
 @[ext]
 structure MyCone where
   pt : M
@@ -45,8 +77,8 @@ def eqobj {F G H : J ⥤ M} (α : F ⟶ G) (β : G ⟶ H) : ∀ (X : MyCone F),
   MyCone.ext rfl (by simp;exact (Category.assoc _ _ _).symm)
 
 /-- La meme chose sur les morphismes de la categorie des cones de F -- erreur de type -/
--- def eqmap {F G H : J ⥤ M} (α : F ⟶ G) (β : G ⟶ H) {X Y: MyCone F}: ∀ (m : X ⟶ Y),
---   (myPostCompose (α ≫ β)).map m =  (myPostCompose α ⋙ myPostCompose β).map m := sorry
+def eqmap {F G H : J ⥤ M} (α : F ⟶ G) (β : G ⟶ H) {X Y: MyCone F}: ∀ (m : X ⟶ Y),
+  (myPostCompose (α ≫ β)).map m =  (myPostCompose α ⋙ myPostCompose β).map m := sorry
 
 -- les types en question
 def eqmap_type1 {F G H : J ⥤ M} (α : F ⟶ G) (β : G ⟶ H) {X Y: MyCone F} (m : X ⟶ Y) :
