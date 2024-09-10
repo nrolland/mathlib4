@@ -30,6 +30,7 @@ section Wedge
 structure Wedge : Type (max (max um u₂) vm) where
   pt : M
   leg (c:B) : pt ⟶ F.obj (op c,c)
+  -- π : (const J).obj pt ⟶ F
   wedgeCondition : ∀ ⦃c c' : B⦄ (f : c ⟶ c'),
     (leg c ≫ F.map ((𝟙 c).op,f) : pt ⟶ F.obj (op c, c'))
      = (leg c' ≫ F.map (f.op, 𝟙 c')  : pt ⟶ F.obj (op c, c')) := by aesop_cat
@@ -49,7 +50,7 @@ instance : Category (Wedge F) where
     fac := fun c => by
       simp_all only [Category.assoc, WedgeMorphism.fac] }
 
--- typiquement + simple avec les cone, pour lesquel il existe bcp de lemmes
+-- typiquement + simple avec les cones, pour lesquel il existe bcp de lemmes
 def wedgeHom {F G : (Bᵒᵖ×B) ⥤ M} (α : F ⟶ G) : Wedge F ⥤ Wedge G  where
   obj w :=  {
     pt := w.pt
@@ -63,9 +64,70 @@ def wedgeHom {F G : (Bᵒᵖ×B) ⥤ M} (α : F ⟶ G) : Wedge F ⥤ Wedge G  wh
           rw [<- Category.assoc, w.wedgeCondition f, Category.assoc] }
   map {X Y} m := {
     hom := m.hom
-    fac := fun c => by dsimp;rw [<-  m.fac c, Category.assoc ] }
+    fac := fun c => by dsimp;
+                       rw [<-  m.fac c]
+                       rw [Category.assoc]}
 
-def isoFctrIsoWedge' {F G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) : Wedge F ≅ Wedge G  where
+def qeqwe {F G H : (Bᵒᵖ×B) ⥤ M} (α : F ⟶ G) (β : G ⟶ H) :
+  ∀ (X : Wedge F), (wedgeHom α ⋙ wedgeHom β).obj X = (wedgeHom (α ≫ β)).obj X :=  by
+  intro w
+  apply Wedge.ext
+  · rfl
+  · simp
+    -- on devrait pouvoir remplacer par postcomp =
+    funext c
+    have : ((wedgeHom β).obj ((wedgeHom α).obj w)).leg c = (w.leg c ≫ α.app (op c, c)) ≫ β.app (op c, c) := rfl
+    have : ((wedgeHom (α ≫ β)).obj w).leg c = w.leg c ≫ (α ≫ β).app (op c, c) := rfl
+    simp_all only [ NatTrans.comp_app,Category.assoc]
+
+theorem mapqw {F G : (Bᵒᵖ×B) ⥤ M} (α : F ⟶ G) {X Y : Wedge F} (m : X ⟶ Y) :
+   ((wedgeHom α).map m).hom = m.hom := rfl
+
+theorem wedgeHomCom {F G H : (Bᵒᵖ×B) ⥤ M} (α : F ⟶ G) (β : G ⟶ H) : wedgeHom α ⋙ wedgeHom β =
+    wedgeHom (α ≫ β) := by
+    have eqobj := qeqwe α β
+    apply Functor.ext
+    · intro w z m
+      simp
+      apply WedgeMorphism.ext
+      have g1 : ((wedgeHom β).map ((wedgeHom α).map m)).hom = m.hom  := rfl
+      have g2 : ((wedgeHom (α ≫ β)).map m ).hom = m.hom  := rfl
+      have distrib : (eqToHom (eqobj _) ≫ (wedgeHom (α ≫ β)).map m ≫ eqToHom (eqobj z ).symm).hom =
+        (eqToHom (eqobj _ )).hom ≫ ((wedgeHom (α ≫ β)).map m).hom ≫ (eqToHom (eqobj z ).symm).hom := rfl
+      have g3 : m.hom  =   (eqToHom (eqobj w)).hom ≫ m.hom ≫ (eqToHom (eqobj z ).symm).hom  :=  sorry
+      have g3 : ((wedgeHom α ⋙ wedgeHom β).obj w).pt ⟶ z.pt := (eqToHom (eqobj w)).hom ≫ m.hom
+
+
+      --have eqtohomw : ((wedgeHom α ⋙ wedgeHom β).obj w).pt ⟶ ((wedgeHom (α ≫ β)).obj w).pt :=  (eqToHom (eqobj w)).hom
+      have heqtohomw : (eqToHom (eqobj w)).hom = 𝟙 w.pt := by
+        have asd := congrArg WedgeMorphism.hom (sorry : eqToHom (eqobj w) = eqToHom (eqobj w))
+        sorry
+
+      have asp : m.hom = (eqToHom (eqobj w)).hom ≫ m.hom ≫ (eqToHom (eqobj z).symm).hom := by sorry
+      have g' : ((wedgeHom β).map ((wedgeHom α).map m)).hom =
+        (eqToHom (eqobj w ) ≫ (wedgeHom (α ≫ β)).map m ≫ eqToHom (eqobj z).symm ).hom  := by
+          rw [g1, distrib, g2]
+          rw [<-asp]
+
+      have res : ((wedgeHom β).map ((wedgeHom α).map m)).hom =
+         (eqToHom (eqobj w ) ≫ (wedgeHom (α ≫ β)).map m ≫ eqToHom (eqobj z).symm ).hom  :=  sorry -- (g1.trans g2.symm).trans g3.symm
+      exact res
+
+    -- apply Functor.hext
+    -- · exact qeqwe α β
+    -- · intro w z m
+    --   simp
+
+    --   let sa : (wedgeHom β).obj ((wedgeHom α).obj w) ⟶ (wedgeHom β).obj ((wedgeHom α).obj z) :=  (wedgeHom β).map ((wedgeHom α).map m)
+    --   let sb : (wedgeHom (α ≫ β)).obj w ⟶ (wedgeHom (α ≫ β)).obj z :=  (wedgeHom (α ≫ β)).map m
+
+    --   have goal :  HEq ((wedgeHom β).map ((wedgeHom α).map m)) ((wedgeHom (α ≫ β)).map m) := sorry
+
+    --   sorry
+--theorem hcongr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) : HEq (F.map f) (G.map f) := by
+
+
+def isoFctrIsoWedgeInType {F G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) : Wedge F ≅ Wedge G  where
   hom := (wedgeHom i.hom).obj
   inv := (wedgeHom i.inv).obj
   hom_inv_id : (wedgeHom i.hom).obj ≫ (wedgeHom i.inv).obj = 𝟙 (Wedge F) := by
@@ -87,11 +149,12 @@ def isoFctrIsoWedge' {F G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) : Wedge F ≅ Wedge
 
 
 def isoFctrIsoWedge {F G : (Bᵒᵖ×B) ⥤ M} (i: F ≅ G) : IsoOfCategory (Wedge F)  (Wedge G)  where
-  hom := sorry --  : B ⥤ C
-  inv := sorry -- : C ⥤ B
+  hom := wedgeHom i.hom  --  : B ⥤ C
+  inv := wedgeHom i.inv -- : C ⥤ B
   hom_inv_id := sorry --  : hom ⋙ inv = 𝟭 B := by aesop_cat
   inv_hom_id := sorry -- : inv ⋙ hom = 𝟭 C := by aesop_cat
 
+-- A faire : foncteur de F vers cat.. si pas impossible - cf comp w?
 end Wedge
 
 
