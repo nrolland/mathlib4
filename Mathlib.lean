@@ -77,6 +77,7 @@ import Mathlib.Algebra.Category.Grp.EnoughInjectives
 import Mathlib.Algebra.Category.Grp.EpiMono
 import Mathlib.Algebra.Category.Grp.EquivalenceGroupAddGroup
 import Mathlib.Algebra.Category.Grp.FilteredColimits
+import Mathlib.Algebra.Category.Grp.FiniteGrp
 import Mathlib.Algebra.Category.Grp.ForgetCorepresentable
 import Mathlib.Algebra.Category.Grp.Images
 import Mathlib.Algebra.Category.Grp.Injective
@@ -4366,6 +4367,7 @@ import Mathlib.Topology.AlexandrovDiscrete
 import Mathlib.Topology.Algebra.Affine
 import Mathlib.Topology.Algebra.Algebra
 import Mathlib.Topology.Algebra.Algebra.Rat
+import Mathlib.Topology.Algebra.Category.ProfiniteGrp
 import Mathlib.Topology.Algebra.ConstMulAction
 import Mathlib.Topology.Algebra.Constructions
 import Mathlib.Topology.Algebra.Constructions.DomMulAct
