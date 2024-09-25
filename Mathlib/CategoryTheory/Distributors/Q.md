@@ -1,3 +1,22 @@
+Definitional equality is "special" to prove things in lean :
+
+Form some type T(\alpha) and T(\beta) on top of definitionally equal type \alpha and \beta, one can still talk about equality among some elements x \in T(\alpha) and y \in T(\beta). It's not a type error.
+
+If \alpha and \beta are not definitionally equal, such equality is a type error, and one has to resort to heterogeneous equality.
+
+Could one have *bounded* definitional equality : under some typeclass representing (non definitional) equality of types \alpha and \beta, add such equality to the rules at play for definitional equality.
+
+This would not lead to contradiction because the values produced are only acessible if one proves the required equality.
+Using this bounded definitional equality would more closely related to intuition about two terms being definitianly equal of they have the same definition (cf end of example)
+
+This is loosely similar to [implicit configuration](https://okmij.org/ftp/Haskell/tr-15-04.pdf) from Oleg Kiselyov where some runtime value provided at the start of a program is reflected as static value.
+
+What would be needed to use such a system is a way to reflect (subset of?) proofs of non definitional equalities to typeclass instances.
+
+Here's an example using category theory
+
+
+```lean4
 import Mathlib.CategoryTheory.Functor.Const
 
 open CategoryTheory
@@ -22,7 +41,7 @@ def simpleCompose  (α : F ⟶ G) : Simple F ⥤ Simple G  where
   obj c :=  { pt := c.pt  }
   map {X Y} (m : X ⟶ Y) := { hom := m.hom }
 
--- Key part : definitionally equality of types
+-- Key part : definitional equality of types
 example (α : F ⟶ G) (β : G ⟶ H) (x : Simple F):
     (((simpleCompose (α ≫ β)).obj x)) = ((simpleCompose α ⋙ simpleCompose β).obj x) :=
   rfl
@@ -71,19 +90,16 @@ example (α : F ⟶ G) (β : G ⟶ H) (x y: MyCone F) (m : x ⟶ y) :
 
 
 -- Key solution :  Instead of a type error, one would want a constraint and simply use definitional equality
--- Look at the definition of map. It is definitionally equal
+-- Look at the definition of map. Both side have the same definition.
 example (α : F ⟶ G) (β : G ⟶ H) (x y: MyCone F) (m : x ⟶ y)
   [TyEq ((pc α ⋙ pc β).obj x ⟶ (pc α ⋙ pc β).obj y) ((pc (α ≫ β)).obj x ⟶ (pc (α ≫ β)).obj y) ] :
-  (pc (α ≫ β)).map m = (pc α ⋙ pc β).map m := rfl
+  (pc (α ≫ β)).map m = (pc α ⋙ pc β).map m := bounded_rfl
 
 
--- Look at the definition of map. It is definitionally equal
+-- Look at the definition of map. They are definitionally equal.
 example (α : F ⟶ G) (β : G ⟶ H) (x y: MyCone F) (m : x ⟶ y) :
   (pc (α ≫ β)).map m = { hom := m.hom }  := rfl
 
 example (α : F ⟶ G) (β : G ⟶ H) (x y: MyCone F) (m : x ⟶ y) :
    (pc α ⋙ pc β).map m = { hom := m.hom }  := rfl
-
-
--- inductive BEq : {α : Sort u} → α → {β : Sort u} → β → Prop where
---   | brefl [eq : TyEq α β] (a : α) : HEq a (eq.mp a)
+```

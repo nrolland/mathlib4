@@ -1,6 +1,8 @@
 import Mathlib.CategoryTheory.Products.Basic
+import Mathlib.CategoryTheory.Products.Basic
+import Mathlib.CategoryTheory.Limits.Cones
+import Mathlib.CategoryTheory.Category.Cat
 
-namespace CategoryTheory
 
 open CategoryTheory
 open Functor
@@ -70,7 +72,6 @@ theorem wedgeHomCom2 {F G H : B ⥤ M} (α : F ⟶ G) (β : G ⟶ H) : coneHom �
     exact res
   -- · sorry
 
-end CategoryTheory
 
 
 #min_imports
