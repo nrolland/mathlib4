@@ -4090,6 +4090,7 @@ import Mathlib.RingTheory.TwoSidedIdeal.Operations
 import Mathlib.RingTheory.UniqueFactorizationDomain
 import Mathlib.RingTheory.Unramified.Basic
 import Mathlib.RingTheory.Unramified.Derivations
+import Mathlib.RingTheory.Unramified.Field
 import Mathlib.RingTheory.Unramified.Finite
 import Mathlib.RingTheory.Valuation.AlgebraInstances
 import Mathlib.RingTheory.Valuation.Basic
