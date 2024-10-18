@@ -2146,7 +2146,6 @@ import Mathlib.Data.Bool.Count
 import Mathlib.Data.Bool.Set
 import Mathlib.Data.Bracket
 import Mathlib.Data.Bundle
-import Mathlib.Data.ByteArray
 import Mathlib.Data.Char
 import Mathlib.Data.Complex.Abs
 import Mathlib.Data.Complex.Basic
@@ -2671,6 +2670,7 @@ import Mathlib.Data.ZMod.Quotient
 import Mathlib.Data.ZMod.Units
 import Mathlib.Deprecated.AlgebraClasses
 import Mathlib.Deprecated.Aliases
+import Mathlib.Deprecated.ByteArray
 import Mathlib.Deprecated.Combinator
 import Mathlib.Deprecated.Equiv
 import Mathlib.Deprecated.Group
